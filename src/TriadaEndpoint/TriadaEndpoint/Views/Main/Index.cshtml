@@ -1,5 +1,36 @@
-﻿@{
+﻿@model TriadaEndpoint.Models.QueryViewModel
+@{
     ViewBag.Title = "SPARQL Query";
 }
 
-Ahoj světe!
+@using (Html.BeginForm("PostSparqlQuery", "Main", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+{
+    
+    
+    
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">SPARQL Query</h3>
+        </div>
+        
+        <form class="form-horizontal">
+            <div class="form-group">
+                <div class="TextareaBox">
+                    @Html.TextAreaFor(m => m.Query, new { rows = 15, @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="InputBox">
+                    @Html.EnumDropDownListFor(m => m.ResultFormat, new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="InputBox">
+                    <input type="submit" class="btn btn-default" value="Execute" />
+                </div>
+            </div>
+        </form>
+
+        
+    </div>
+}

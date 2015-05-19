@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Newtonsoft.Json.Converters;
 using TriadaEndpoint.Models;
 using VDS.RDF.Query;
 using VDS.RDF.Writing;
@@ -98,22 +99,51 @@ namespace TriadaEndpoint.Controllers
         }
 
         [ValidateInput(false)]
-        public ActionResult SparqlQuery(string query)
+        public ActionResult GetSparqlQuery(string query)
         {
             if (!String.IsNullOrEmpty(query))
             {
-                var result = R2RmlStorageWrapper.Storage.Query(query);
+                var parsedQuery = query.Split('&').ToList();
+                var sparqlQuery = parsedQuery[0];
+
+                var result = R2RmlStorageWrapper.Storage.Query(sparqlQuery);
                 var resultSet = result as SparqlResultSet;
 
-                var sparqlHtmlWriter = new SparqlHtmlWriter();
-                using (var sw = new System.IO.StringWriter())
-                {
-                    sparqlHtmlWriter.Save(resultSet, sw);
 
-                    return new ContentResult { Content = sw.ToString() };
+                var format = (parsedQuery.Count > 1) ? parsedQuery[1].Split('=')[1] : "Html";
+                var output = String.Empty;
+
+                switch ((ResultFormats)Enum.Parse(typeof(ResultFormats), format))
+                {
+                    case ResultFormats.Turtle:
+                        break;
+                    case ResultFormats.JsonLD:
+                        break;
+                    default:
+                        var sparqlHtmlWriter = new SparqlHtmlWriter();
+                        using (var sw = new System.IO.StringWriter())
+                        {
+                            sparqlHtmlWriter.Save(resultSet, sw);
+                            output = sw.ToString();
+                        }
+                        break;
                 }
+
+                return new ContentResult { Content = output };
+                
             }
             return new EmptyResult();
+        }
+
+        [ValidateInput(false)]
+        public ActionResult PostSparqlQuery(QueryViewModel queryViewModel)
+        {
+            var queryString = new SparqlParameterizedString();
+            if (!String.IsNullOrEmpty(queryViewModel.Query))
+            {
+                queryString.CommandText = Url.Encode(queryViewModel.Query);
+            }
+            return RedirectPermanent("~/sparql?query=" + queryString + Url.Encode("&Format=" + queryViewModel.ResultFormat));
         }
 
         /// <summary>

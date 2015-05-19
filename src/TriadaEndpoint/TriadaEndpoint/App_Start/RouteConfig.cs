@@ -14,7 +14,7 @@ namespace TriadaEndpoint
             routes.MapRoute(
                 "sparql",
                 "sparql",
-                new { controller = "Main", action = "SparqlQuery" }
+                new { controller = "Main", action = "GetSparqlQuery" }
             );
 
             routes.MapRoute(
