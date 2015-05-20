@@ -151,7 +151,6 @@
     <Compile Include="Models\DULConfig.cs" />
     <Compile Include="Models\DULWrapper.cs" />
     <Compile Include="Models\QueryViewModel.cs" />
-    <Compile Include="Models\R2RmlStorageFactoryForQueryHandler.cs" />
     <Compile Include="Models\R2RmlStorageWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

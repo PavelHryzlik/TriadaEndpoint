@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-using TriadaEndpoint.Controllers;
 using TriadaEndpoint.Models;
-using VDS.RDF.Configuration;
 
 namespace TriadaEndpoint
 {
@@ -15,8 +9,6 @@ namespace TriadaEndpoint
     {
         protected void Application_Start()
         {
-            ConfigurationLoader.AddObjectFactory(new R2RmlStorageFactoryForQueryHandler());
-
             AreaRegistration.RegisterAllAreas();
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
