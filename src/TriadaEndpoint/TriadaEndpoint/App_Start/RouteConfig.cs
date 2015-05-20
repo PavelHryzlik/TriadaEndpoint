@@ -12,6 +12,12 @@ namespace TriadaEndpoint
             routes.MapMvcAttributeRoutes();
 
             routes.MapRoute(
+                "dump",
+                "dump",
+                new { controller = "Main", action = "GetDump" }
+            );
+
+            routes.MapRoute(
                 "sparql",
                 "sparql",
                 new { controller = "Main", action = "GetSparqlQuery" }

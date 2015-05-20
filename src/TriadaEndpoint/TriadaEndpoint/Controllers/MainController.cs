@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Mime;
 using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json.Converters;
@@ -16,16 +17,61 @@ namespace TriadaEndpoint.Controllers
 {
     public class MainController : Controller
     {
-        public ActionResult Index()
-        {
-            return View();
-        }
-
         private const string BasePrefix = "PREFIX ex: <http://example.com/ns#> ";
         private const string Contracts = BasePrefix + "SELECT * WHERE { ?contracts a ex:Contract }";
         private const string Parties = BasePrefix + "SELECT * WHERE { ?parties a ex:Party }";
         private const string Files = BasePrefix + "SELECT ?files WHERE { ?_ ex:document ?files }";
         private const string SelectBySubject = "SELECT * WHERE { @subject ?p ?o }";
+
+        public ActionResult Index()
+        {
+            return View();
+        }
+
+        [ValidateInput(false)]
+        public ActionResult GetDump(string format)
+        {
+            if (!String.IsNullOrEmpty(format))
+            {
+                try
+                {
+                    var graph = new Graph();
+                    R2RmlStorageWrapper.Storage.LoadGraph(graph, "http://example.com/ns#");
+
+                    IGraphActionResultWritter graphActionWriter;
+
+                    switch ((ResultFormats)Enum.Parse(typeof(ResultFormats), format))
+                    {
+                        case ResultFormats.Turtle:
+                            graphActionWriter = new GraphActionResultWritter(new CompressingTurtleWriter(),
+                                "text/turtle");
+                            break;
+                        case ResultFormats.Json:
+                            graphActionWriter = new GraphActionResultWritter(new RdfJsonWriter(), "application/json");
+                            break;
+                        case ResultFormats.NTripples:
+                            graphActionWriter = new GraphActionResultWritter(new NTriplesWriter(), "text/n-triples");
+                            break;
+                        case ResultFormats.RdfXml:
+                            graphActionWriter = new GraphActionResultWritter(new PrettyRdfXmlWriter(),
+                                "text/rdf+xml");
+                            break;
+                        case ResultFormats.Csv:
+                            graphActionWriter = new GraphActionResultWritter(new CsvWriter(), "text/csv");
+                            break;
+                        default:
+                            graphActionWriter = new GraphActionResultWritter(new HtmlWriter(), "text/html");
+                            break;
+                    }
+                    return graphActionWriter.Write(graph);
+                }
+                catch (Exception ex)
+                {
+                    return Content("Chyba: " + ex.Message);
+                }      
+            }
+            return new EmptyResult();
+        }
 
         [Route("~/contract/{id?}/{verze?}/{parameter?}")]
         public ActionResult GetContract(string id, string verze, string parameter)
@@ -87,15 +133,22 @@ namespace TriadaEndpoint.Controllers
             var queryString = new SparqlParameterizedString();
             if (!String.IsNullOrEmpty(fileGuid) && !String.IsNullOrEmpty(fileName))
             {
-                var file = DULWrapper.GetFile(Guid.Parse(fileGuid));
-                var mimetype = MimeMapping.GetMimeMapping(fileName);
-
-                if (file != null)
+                try
                 {
-                    var fileBytes = file.ToArray();
-                    return File(fileBytes, mimetype, fileName);
+                    var file = DULWrapper.GetFile(Guid.Parse(fileGuid));
+                    var mimetype = MimeMapping.GetMimeMapping(fileName);
+
+                    if (file != null)
+                    {
+                        var fileBytes = file.ToArray();
+                        return File(fileBytes, mimetype, fileName);
+                    }
+                    return new EmptyResult();
                 }
-                return new EmptyResult();
+                catch (Exception ex)
+                {
+                    return Content("Chyba: " + ex.Message);
+                }               
             }
             queryString.CommandText = Url.Encode(Files);
 
@@ -111,10 +164,9 @@ namespace TriadaEndpoint.Controllers
                 {
                     var parsedQuery = query.Split('&').ToList();
                     var sparqlQuery = parsedQuery[0];
+                    var format = (parsedQuery.Count > 1) ? parsedQuery[1].Split('=')[1] : "Html";
 
                     var result = R2RmlStorageWrapper.Storage.Query(sparqlQuery);
-
-                    var format = (parsedQuery.Count > 1) ? parsedQuery[1].Split('=')[1] : "Html";
 
                     if (result is SparqlResultSet)
                     {
