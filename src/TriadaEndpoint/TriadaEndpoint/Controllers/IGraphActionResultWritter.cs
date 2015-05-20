@@ -1,26 +1,26 @@
 ﻿using System.Web.Mvc;
-using VDS.RDF.Query;
+using VDS.RDF;
 
 namespace TriadaEndpoint.Controllers
 {
     /// <summary>
-    /// Interface for Writer classes which serialize Sparql Result Sets into FileContentResult
+    /// Interface for Writer classes which serialize Graph into FileContentResult
     /// </summary>
-    public interface ISparqlActionResultWritter
+    public interface IGraphActionResultWritter
     {
         /// <summary>
         /// Write the SPARQL Result Set to FileContentResult
         /// </summary>
-        /// <param name="sparqlResultSet">SPARQL Result Set to write</param>
+        /// <param name="graph">Graph to write</param>
         /// <returns>FileContentResult as ActionResult</returns>
-        ActionResult Write(SparqlResultSet sparqlResultSet);
+        ActionResult Write(IGraph graph);
 
         /// <summary>
         /// Write the SPARQL Result Set to FileContentResult
         /// </summary>
-        /// <param name="sparqlResultSet">SPARQL Result Set to write</param>
+        /// <param name="graph">Graph to write</param>
         /// <param name="contentType">Result MIME Type</param>
         /// <returns>FileContentResult as ActionResult</returns>
-        ActionResult Write(SparqlResultSet sparqlResultSet, string contentType);
+        ActionResult Write(IGraph graph, string contentType);
     }
 }

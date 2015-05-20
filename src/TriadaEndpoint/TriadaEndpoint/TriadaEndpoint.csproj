@@ -142,6 +142,8 @@
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
+    <Compile Include="Controllers\GraphActionResultWritter.cs" />
+    <Compile Include="Controllers\IGraphActionResultWritter.cs" />
     <Compile Include="Controllers\ISparqlActionResultWritterr.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\SparqlActionResultWritter.cs" />

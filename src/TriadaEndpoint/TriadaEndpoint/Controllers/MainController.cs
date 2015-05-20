@@ -107,37 +107,88 @@ namespace TriadaEndpoint.Controllers
         {
             if (!String.IsNullOrEmpty(query))
             {
-                var parsedQuery = query.Split('&').ToList();
-                var sparqlQuery = parsedQuery[0];
-
-                var resultSet = R2RmlStorageWrapper.Storage.Query(sparqlQuery) as SparqlResultSet;
-
-                var format = (parsedQuery.Count > 1) ? parsedQuery[1].Split('=')[1] : "Html";
-
-                SparqlActionResultWritter sparqlActionWriter;
-
-                switch ((ResultFormats)Enum.Parse(typeof(ResultFormats), format))
+                try
                 {
-                    case ResultFormats.Turtle:
-                        sparqlActionWriter = new SparqlActionResultWritter(new SparqlRdfWriter(new CompressingTurtleWriter()), "text/turtle");
-                        break;
-                    case ResultFormats.Json:
-                        sparqlActionWriter = new SparqlActionResultWritter(new SparqlJsonWriter(), "application/json");
-                        break;
-                    case ResultFormats.NTripples:
-                        sparqlActionWriter = new SparqlActionResultWritter(new SparqlRdfWriter(new NTriplesWriter()), "text/n-triples");
-                        break;
-                    case ResultFormats.RdfXml:
-                        sparqlActionWriter = new SparqlActionResultWritter(new SparqlRdfWriter(new PrettyRdfXmlWriter()), "text/rdf+xml");
-                        break;
-                    case ResultFormats.Csv:
-                        sparqlActionWriter = new SparqlActionResultWritter(new SparqlCsvWriter(), "text/csv");
-                        break;
-                    default:
-                        sparqlActionWriter = new SparqlActionResultWritter(new SparqlHtmlWriter(), "text/html");
-                        break;
+                    var parsedQuery = query.Split('&').ToList();
+                    var sparqlQuery = parsedQuery[0];
+
+                    var result = R2RmlStorageWrapper.Storage.Query(sparqlQuery);
+
+                    var format = (parsedQuery.Count > 1) ? parsedQuery[1].Split('=')[1] : "Html";
+
+                    if (result is SparqlResultSet)
+                    {
+                        var resultSet = (SparqlResultSet)result;
+
+                        ISparqlActionResultWritter sparqlActionWriter;
+
+                        switch ((ResultFormats)Enum.Parse(typeof(ResultFormats), format))
+                        {
+                            case ResultFormats.Turtle:
+                                sparqlActionWriter =
+                                    new SparqlActionResultWritter(new SparqlRdfWriter(new CompressingTurtleWriter()),
+                                        "text/turtle");
+                                break;
+                            case ResultFormats.Json:
+                                sparqlActionWriter = new SparqlActionResultWritter(new SparqlJsonWriter(),
+                                    "application/json");
+                                break;
+                            case ResultFormats.NTripples:
+                                sparqlActionWriter =
+                                    new SparqlActionResultWritter(new SparqlRdfWriter(new NTriplesWriter()),
+                                        "text/n-triples");
+                                break;
+                            case ResultFormats.RdfXml:
+                                sparqlActionWriter =
+                                    new SparqlActionResultWritter(new SparqlRdfWriter(new PrettyRdfXmlWriter()),
+                                        "text/rdf+xml");
+                                break;
+                            case ResultFormats.Csv:
+                                sparqlActionWriter = new SparqlActionResultWritter(new SparqlCsvWriter(), "text/csv");
+                                break;
+                            default:
+                                sparqlActionWriter = new SparqlActionResultWritter(new SparqlHtmlWriter(), "text/html");
+                                break;
+                        }
+                        return sparqlActionWriter.Write(resultSet);
+                    }
+
+                    if (result is IGraph)
+                    {
+                        var graph = (IGraph)result;
+
+                        IGraphActionResultWritter graphActionWriter;
+
+                        switch ((ResultFormats)Enum.Parse(typeof(ResultFormats), format))
+                        {
+                            case ResultFormats.Turtle:
+                                graphActionWriter = new GraphActionResultWritter(new CompressingTurtleWriter(),
+                                    "text/turtle");
+                                break;
+                            case ResultFormats.Json:
+                                graphActionWriter = new GraphActionResultWritter(new RdfJsonWriter(), "application/json");
+                                break;
+                            case ResultFormats.NTripples:
+                                graphActionWriter = new GraphActionResultWritter(new NTriplesWriter(), "text/n-triples");
+                                break;
+                            case ResultFormats.RdfXml:
+                                graphActionWriter = new GraphActionResultWritter(new PrettyRdfXmlWriter(),
+                                    "text/rdf+xml");
+                                break;
+                            case ResultFormats.Csv:
+                                graphActionWriter = new GraphActionResultWritter(new CsvWriter(), "text/csv");
+                                break;
+                            default:
+                                graphActionWriter = new GraphActionResultWritter(new HtmlWriter(), "text/html");
+                                break;
+                        }
+                        return graphActionWriter.Write(graph);
+                    }
                 }
-                return sparqlActionWriter.Write(resultSet);
+                catch (Exception ex)
+                {
+                    return Content("Chyba: " + ex.Message);
+                }
             }
             return new EmptyResult();
         }
