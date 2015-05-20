@@ -142,7 +142,9 @@
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
+    <Compile Include="Controllers\ISparqlActionResultWritterr.cs" />
     <Compile Include="Controllers\MainController.cs" />
+    <Compile Include="Controllers\SparqlActionResultWritter.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

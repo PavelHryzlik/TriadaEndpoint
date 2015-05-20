@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace TriadaEndpoint.Models
 {
@@ -24,8 +20,17 @@ namespace TriadaEndpoint.Models
 
     public enum ResultFormats
     {
+        [Display(Name = "HTML")]
         Html,
+        [Display(Name = "Turtle")]
         Turtle,
-        JsonLD
+        [Display(Name = "JSON")]
+        Json,
+        [Display(Name = "N-Tripples")]
+        NTripples,
+        [Display(Name = "RDF/XML")]
+        RdfXml,
+        [Display(Name = "CSV")]
+        Csv,
     }
 }

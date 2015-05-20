@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json.Converters;
 using TriadaEndpoint.Models;
+using VDS.RDF;
 using VDS.RDF.Query;
 using VDS.RDF.Writing;
+using VDS.RDF.Writing.Formatting;
 
 namespace TriadaEndpoint.Controllers
 {
@@ -106,31 +110,34 @@ namespace TriadaEndpoint.Controllers
                 var parsedQuery = query.Split('&').ToList();
                 var sparqlQuery = parsedQuery[0];
 
-                var result = R2RmlStorageWrapper.Storage.Query(sparqlQuery);
-                var resultSet = result as SparqlResultSet;
-
+                var resultSet = R2RmlStorageWrapper.Storage.Query(sparqlQuery) as SparqlResultSet;
 
                 var format = (parsedQuery.Count > 1) ? parsedQuery[1].Split('=')[1] : "Html";
-                var output = String.Empty;
+
+                SparqlActionResultWritter sparqlActionWriter;
 
                 switch ((ResultFormats)Enum.Parse(typeof(ResultFormats), format))
                 {
                     case ResultFormats.Turtle:
+                        sparqlActionWriter = new SparqlActionResultWritter(new SparqlRdfWriter(new CompressingTurtleWriter()), "text/turtle");
                         break;
-                    case ResultFormats.JsonLD:
+                    case ResultFormats.Json:
+                        sparqlActionWriter = new SparqlActionResultWritter(new SparqlJsonWriter(), "application/json");
+                        break;
+                    case ResultFormats.NTripples:
+                        sparqlActionWriter = new SparqlActionResultWritter(new SparqlRdfWriter(new NTriplesWriter()), "text/n-triples");
+                        break;
+                    case ResultFormats.RdfXml:
+                        sparqlActionWriter = new SparqlActionResultWritter(new SparqlRdfWriter(new PrettyRdfXmlWriter()), "text/rdf+xml");
+                        break;
+                    case ResultFormats.Csv:
+                        sparqlActionWriter = new SparqlActionResultWritter(new SparqlCsvWriter(), "text/csv");
                         break;
                     default:
-                        var sparqlHtmlWriter = new SparqlHtmlWriter();
-                        using (var sw = new System.IO.StringWriter())
-                        {
-                            sparqlHtmlWriter.Save(resultSet, sw);
-                            output = sw.ToString();
-                        }
+                        sparqlActionWriter = new SparqlActionResultWritter(new SparqlHtmlWriter(), "text/html");
                         break;
                 }
-
-                return new ContentResult { Content = output };
-                
+                return sparqlActionWriter.Write(resultSet);
             }
             return new EmptyResult();
         }

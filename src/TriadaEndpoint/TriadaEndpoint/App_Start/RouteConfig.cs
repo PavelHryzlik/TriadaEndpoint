@@ -18,9 +18,9 @@ namespace TriadaEndpoint
             );
 
             routes.MapRoute(
-                name: "Default",
-                url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Main", action = "Index", id = UrlParameter.Optional }
+                "Default", 
+                "{controller}/{action}/{id}", 
+                new { controller = "Main", action = "Index", id = UrlParameter.Optional }
             );
         }
     }
