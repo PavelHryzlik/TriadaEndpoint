@@ -179,6 +179,24 @@
   WHERE ExtKontakt.UZIVATEL IS NULL AND Smlouva.RODIC is not NULL
   """.
 
+<#AttachmentTableView> rr:sqlQuery """
+  SELECT DISTINCT Priloha.ID, Priloha.POPIS_NAZEV, Priloha.NAZEVSOUBORU, 
+  Priloha.SADADUL_ULOZISTEID, Priloha.OKAMZIKVYTVORENI,
+  (CASE Verze.ANONYMIZOVANO
+            WHEN 'T' THEN 'true'
+            WHEN 'F' THEN 'false'
+   END) AS Anonymizovano
+  FROM [triada].[ESMLUV_VERZESMLOUVY] As Verze
+  JOIN [triada].[ESMLUV_PRILOHASMLOUVY] As Priloha ON Verze.SOUBOR = Priloha.RODIC
+  """.
+
+<#AttachmentToContractTableView> rr:sqlQuery """
+  SELECT Smlouva.ID As SmlouvaID, Priloha.ID, Verze.PORADIVERZE
+  FROM [triada].[ESMLUV_SMLOUVA] AS Smlouva 
+  JOIN [triada].[ESMLUV_VERZESMLOUVY] As Verze ON Smlouva.ID = Verze.SMLOUVA
+  JOIN [triada].[ESMLUV_PRILOHASMLOUVY] As Priloha ON Verze.SOUBOR = Priloha.RODIC
+  """.
+
   
 <#Contract> a rr:TriplesMap;
     rr:logicalTable <#ContractsTableView>;
@@ -443,6 +461,16 @@
       rr:objectMap [ rr:template "http://localhost:7598/supplement/{ID}/{PoradiVerzeDodatku}" ];
     ].
 
+<#ContractAttachments> a rr:TriplesMap;
+    rr:logicalTable <#AttachmentToContractTableView>;
+    rr:subjectMap [
+        rr:template "http://localhost:7598/contract/{SmlouvaID}/{PORADIVERZE}"
+    ];
+    rr:predicateObjectMap [
+      rr:predicate ex:Attachment;
+      rr:objectMap [ rr:template "http://localhost:7598/attachment/{ID}/1" ];
+    ].
+
 <#Supplement> a rr:TriplesMap;
     rr:logicalTable <#SupplementTableView>;
     rr:subjectMap [
@@ -576,6 +604,110 @@
         rr:predicate ex:published;
         rr:objectMap [ 
 			rr:column "[DATUMZMENYSTAVU_TS]"; 
+			rr:datatype xsd:dateTime; 
+      ];
+    ].
+
+<#Attachment> a rr:TriplesMap;
+    rr:logicalTable <#AttachmentTableView>;
+    rr:subjectMap [
+      rr:template "http://localhost:7598/attachment/{ID}/1";
+      rr:class ex:Attachment;
+    ];
+    rr:predicateObjectMap [
+      rr:predicate ex:type;
+      rr:objectMap [ rr:constant "Příloha" ];
+    ];
+    rr:predicateObjectMap [
+      rr:predicate ex:anonymised;
+      rr:objectMap [ 
+        rr:column "[Anonymizovano]";
+        rr:datatype xsd:boolean; 
+      ];
+    ];
+    rr:predicateObjectMap [
+      rr:predicate ex:title;
+      rr:objectMap [ rr:column "[POPIS_NAZEV]" ];
+    ];
+	rr:predicateObjectMap [
+      rr:predicate ex:number;
+      rr:objectMap [ rr:column "[ID]" ];
+    ];
+	rr:predicateObjectMap [
+        rr:predicate ex:valid;
+        rr:objectMap [ 
+			rr:template "true";
+			rr:datatype xsd:boolean;
+      ];
+    ];
+	rr:predicateObjectMap [
+      rr:predicate ex:document;
+      rr:objectMap [  rr:template "http://localhost:7598/file/{SADADUL_ULOZISTEID}/{NAZEVSOUBORU}" ];
+    ];
+    rr:predicateObjectMap [
+      rr:predicate ex:Publisher;
+      rr:objectMap [ rr:template "http://localhost:7598/attachment/{ID}/1/publisher" ];
+    ];
+    rr:predicateObjectMap [
+      rr:predicate ex:Version;
+      rr:objectMap [ rr:template "http://localhost:7598/attachment/{ID}/1/version" ];
+    ].
+
+<#AttachmentToContract> a rr:TriplesMap;
+    rr:logicalTable <#AttachmentToContractTableView>;
+    rr:subjectMap [
+        rr:template "http://localhost:7598/attachment/{ID}/1"
+    ];
+    rr:predicateObjectMap [
+      rr:predicate ex:contract;
+      rr:objectMap [ rr:template "http://localhost:7598/contract/{SmlouvaID}/{PORADIVERZE}" ];
+   ].
+
+<#AttachmentPublisher> a rr:TriplesMap;
+    rr:logicalTable <#AttachmentTableView>;
+    rr:subjectMap [
+        rr:template "http://localhost:7598/attachment/{ID}/1/publisher"
+    ];
+    rr:predicateObjectMap [
+        rr:predicate ex:name;
+        rr:objectMap [  rr:constant "MěÚ Dolina" ];
+    ];
+    rr:predicateObjectMap [
+        rr:predicate ex:noID;
+        rr:objectMap [ 
+          rr:template "true";
+		  rr:datatype xsd:boolean; 
+        ];
+    ];
+    rr:predicateObjectMap [
+        rr:predicate ex:country;
+        rr:objectMap [  rr:constant "CZE" ];
+    ];
+    rr:predicateObjectMap [
+        rr:predicate ex:authentication;
+        rr:objectMap [  rr:constant "email" ];
+    ].
+
+<#AttachmentVersion> a rr:TriplesMap;
+    rr:logicalTable <#AttachmentTableView>;
+    rr:subjectMap [
+        rr:template "http://localhost:7598/attachment/{ID}/1/version"
+    ];
+    rr:predicateObjectMap [
+        rr:predicate ex:uri;
+        rr:objectMap [  rr:template "http://localhost:7598/attachment/{ID}/1" ];
+    ];
+	rr:predicateObjectMap [
+        rr:predicate ex:version;
+        rr:objectMap [ 
+			rr:template "1"; 
+			rr:datatype xsd:integer; 
+      ];
+    ];
+    rr:predicateObjectMap [
+        rr:predicate ex:published;
+        rr:objectMap [ 
+			rr:column "[OKAMZIKVYTVORENI]"; 
 			rr:datatype xsd:dateTime; 
       ];
     ].

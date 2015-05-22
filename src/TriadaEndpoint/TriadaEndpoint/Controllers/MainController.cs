@@ -14,6 +14,7 @@ namespace TriadaEndpoint.Controllers
         private const string BasePrefix = "PREFIX ex: <http://example.com/ns#> ";
         private const string Contracts = BasePrefix + "SELECT * WHERE { ?contracts a ex:Contract }";
         private const string Supplement = BasePrefix + "SELECT * WHERE { ?supplements a ex:Supplement }";
+        private const string Attachment = BasePrefix + "SELECT * WHERE { ?attachments a ex:Attachment }";
         private const string Parties = BasePrefix + "SELECT * WHERE { ?parties a ex:Party }";
         private const string Files = BasePrefix + "SELECT ?files WHERE { ?_ ex:document ?files }";
         private const string SelectBySubject = "SELECT * WHERE { @subject ?p ?o }";
@@ -219,6 +220,34 @@ namespace TriadaEndpoint.Controllers
                 else
                 {
                     queryString.CommandText = Url.Encode(Supplement);
+                }
+            }
+
+            return RedirectPermanent("~/sparql?query=" + queryString);
+        }
+
+        [Route("~/attachment/{id?}/{verze?}/{parameter?}")]
+        public ActionResult GetAttachment(string id, string verze, string parameter)
+        {
+            var queryString = new SparqlParameterizedString();
+            if (Request.Url != null)
+            {
+                string baseUrl = Request.Url.GetLeftPart(UriPartial.Authority);
+
+                if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
+                    (parameter.Equals("version") || parameter.Equals("publisher")))
+                {
+                    queryString.CommandText = SelectBySubject;
+                    queryString.SetUri("subject", new Uri(String.Format("{0}/attachment/{1}/{2}/{3}", baseUrl, id, verze, parameter)));
+                }
+                else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze))
+                {
+                    queryString.CommandText = SelectBySubject;
+                    queryString.SetUri("subject", new Uri(String.Format("{0}/attachment/{1}/{2}", baseUrl, id, verze)));
+                }
+                else
+                {
+                    queryString.CommandText = Url.Encode(Attachment);
                 }
             }
 
