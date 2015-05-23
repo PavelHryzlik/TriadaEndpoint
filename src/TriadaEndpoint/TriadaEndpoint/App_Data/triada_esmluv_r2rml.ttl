@@ -14,6 +14,7 @@
   SELECT Smlouva.ID,
   Verze.PORADIVERZE, Verze.PREDMET, Verze.POPIS_POPIS, Verze.TYPSMLOUVY, Mena.ZKRATKA, Verze.CELKOVACASTKA,
   Verze.DATUMPODPISU, Verze.DATUMUCINOSTI, Verze.DATUMUKONCENI, Verze.SMLUVSTRANROZD, Verze.DATUMZMENYSTAVU_TS,
+  VZakazka.EVIDENCNICISLOZAKAZKY, VZakazka.EVIDENCNICISLOFORMULARE,
   (CASE Verze.ANONYMIZOVANO
             WHEN 'T' THEN 'true'
             WHEN 'F' THEN 'false'
@@ -21,6 +22,7 @@
   FROM [triada].[ESMLUV_SMLOUVA] AS Smlouva 
   JOIN [triada].[ESMLUV_VERZESMLOUVY] As Verze ON Smlouva.ID = Verze.SMLOUVA
   JOIN [triada].[ESMLUV_MENA] As Mena ON Verze.MENA = Mena.ID
+  JOIN [triada].[ESMLUV_VERZAKAZKA] As VZakazka ON Verze.VEREJNAZAKAZKA = VZakazka.ID
   WHERE Smlouva.RODIC is NULL
   """.
 
@@ -197,6 +199,14 @@
   JOIN [triada].[ESMLUV_PRILOHASMLOUVY] As Priloha ON Verze.SOUBOR = Priloha.RODIC
   """.
 
+<#MilestoneTableView> rr:sqlQuery """
+  SELECT Smlouva.ID, Verze.PORADIVERZE,
+  Milnik.ID As MilestoneID, Milnik.NAZEV, Milnik.DATUMUCINOSTIML
+  FROM [triada].[ESMLUV_SMLOUVA] AS Smlouva 
+  JOIN [triada].[ESMLUV_VERZESMLOUVY] As Verze ON Smlouva.ID = Verze.SMLOUVA
+  JOIN [triada].[ESMLUV_MILNIK] As Milnik ON Verze.ID = Milnik.VERZESMLOUVY
+  """.
+
   
 <#Contract> a rr:TriplesMap;
     rr:logicalTable <#ContractsTableView>;
@@ -262,6 +272,18 @@
 	rr:predicateObjectMap [
         rr:predicate ex:funding;
         rr:objectMap [ rr:constant "vlastní" ];
+    ];
+	rr:predicateObjectMap [
+      rr:predicate ex:awardID;
+      rr:objectMap [ rr:column "[EVIDENCNICISLOZAKAZKY]" ];
+    ];
+	rr:predicateObjectMap [
+      rr:predicate ex:PublicContract;
+      rr:objectMap [ rr:template "http://linked.opendata.cz/resource/domain/buyer-profiles/contract/cz/{EVIDENCNICISLOZAKAZKY}" ];
+    ];
+	rr:predicateObjectMap [
+      rr:predicate ex:awardProfileID;
+      rr:objectMap [ rr:column "[EVIDENCNICISLOFORMULARE]" ];
     ];
     rr:predicateObjectMap [
       rr:predicate ex:Publisher;
@@ -709,6 +731,52 @@
         rr:objectMap [ 
 			rr:column "[OKAMZIKVYTVORENI]"; 
 			rr:datatype xsd:dateTime; 
+      ];
+    ].
+
+<#ContractToImplementations> a rr:TriplesMap;
+    rr:logicalTable <#MilestoneTableView>;
+    rr:subjectMap [
+        rr:template "http://localhost:7598/contract/{ID}/{PORADIVERZE}";
+    ];
+    rr:predicateObjectMap [
+      rr:predicate ex:Implementation;
+      rr:objectMap [ rr:template "http://localhost:7598/contract/{ID}/{PORADIVERZE}/implementation" ];
+    ].
+
+<#Implementation> a rr:TriplesMap;
+    rr:logicalTable <#MilestoneTableView>;
+    rr:subjectMap [
+        rr:template "http://localhost:7598/contract/{ID}/{PORADIVERZE}/implementation";
+        rr:class ex:Implementation;
+    ];
+    rr:predicateObjectMap [
+        rr:predicate ex:Milestone;
+        rr:objectMap [ rr:template "http://localhost:7598/contract/{ID}/{PORADIVERZE}/implementation/milestone/{MilestoneID}" ];
+	].
+
+<#Milestone> a rr:TriplesMap;
+    rr:logicalTable <#MilestoneTableView>;
+    rr:subjectMap [
+        rr:template "http://localhost:7598/contract/{ID}/{PORADIVERZE}/implementation/milestone/{MilestoneID}";
+        rr:class ex:Milestone;
+    ];
+	rr:predicateObjectMap [
+      rr:predicate ex:number;
+      rr:objectMap [ 
+        rr:column "[MilestoneID]";
+        rr:datatype xsd:integer; 
+      ];
+    ];
+    rr:predicateObjectMap [
+      rr:predicate ex:title;
+      rr:objectMap [ rr:column "[NAZEV]" ];
+    ];
+	rr:predicateObjectMap [
+      rr:predicate ex:dueDate;
+      rr:objectMap [ 
+        rr:column "[DATUMUCINOSTIML]";
+        rr:datatype xsd:dateTime; 
       ];
     ].
     
