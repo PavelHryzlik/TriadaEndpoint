@@ -10,6 +10,12 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:    <http://www.w3.org/2002/07/owl#> .
 
+<#PublisherTableView> rr:sqlQuery """
+  SELECT NAZEVORGANIZACE, ICO, 
+  IIF(ICO is NULL, 'true', 'false') As NoID
+  FROM [triada].[TRI_ORGADR] WHERE HLAVNI = 'T'
+  """.
+
 <#ContractsTableView> rr:sqlQuery """
   SELECT Smlouva.ID,
   Verze.PORADIVERZE, Verze.PREDMET, Verze.POPIS_POPIS, Verze.TYPSMLOUVY, Mena.ZKRATKA, Verze.CELKOVACASTKA,
@@ -207,6 +213,38 @@
   JOIN [triada].[ESMLUV_MILNIK] As Milnik ON Verze.ID = Milnik.VERZESMLOUVY
   """.
 
+<#Publisher> a rr:TriplesMap;
+    rr:logicalTable <#PublisherTableView>;
+    rr:subjectMap [
+        rr:template "http://localhost:7598/publisher"
+    ];
+    rr:predicateObjectMap [
+        rr:predicate ex:name;
+        rr:objectMap [  rr:column "[NAZEVORGANIZACE]" ];
+    ];
+    rr:predicateObjectMap [
+        rr:predicate ex:noID;
+        rr:objectMap [ 
+          rr:column "[NoID]";
+		  rr:datatype xsd:boolean; 
+        ];
+    ];
+	rr:predicateObjectMap [
+        rr:predicate ex:identifier;
+        rr:objectMap [ rr:column "[ICO]" ];
+	];
+	rr:predicateObjectMap [
+        rr:predicate owl:sameAs;
+        rr:objectMap [ rr:template "http://linked.opendata.cz/resource/business-entity/CZ{ICO}" ];
+	];
+    rr:predicateObjectMap [
+        rr:predicate ex:country;
+        rr:objectMap [  rr:constant "CZE" ];
+    ];
+    rr:predicateObjectMap [
+        rr:predicate ex:authentication;
+        rr:objectMap [  rr:constant "email" ];
+    ].
   
 <#Contract> a rr:TriplesMap;
     rr:logicalTable <#ContractsTableView>;
@@ -350,31 +388,6 @@
         rr:predicate ex:responsiblePerson;
         rr:objectMap [ rr:column "[CeleJmeno]" ];
 	].    
-    
-<#ContractPublisher> a rr:TriplesMap;
-    rr:logicalTable <#ContractsTableView>;
-    rr:subjectMap [
-        rr:template "http://localhost:7598/contract/{ID}/{PORADIVERZE}/publisher"
-    ];
-    rr:predicateObjectMap [
-        rr:predicate ex:name;
-        rr:objectMap [  rr:constant "MěÚ Dolina" ];
-    ];
-    rr:predicateObjectMap [
-        rr:predicate ex:noID;
-        rr:objectMap [ 
-          rr:template "true";
-		  rr:datatype xsd:boolean; 
-        ];
-    ];
-    rr:predicateObjectMap [
-        rr:predicate ex:country;
-        rr:objectMap [  rr:constant "CZE" ];
-    ];
-    rr:predicateObjectMap [
-        rr:predicate ex:authentication;
-        rr:objectMap [  rr:constant "email" ];
-    ].
 
 <#ContractVersion> a rr:TriplesMap;
     rr:logicalTable <#ContractsTableView>;
@@ -684,31 +697,6 @@
       rr:predicate ex:contract;
       rr:objectMap [ rr:template "http://localhost:7598/contract/{SmlouvaID}/{PORADIVERZE}" ];
    ].
-
-<#AttachmentPublisher> a rr:TriplesMap;
-    rr:logicalTable <#AttachmentTableView>;
-    rr:subjectMap [
-        rr:template "http://localhost:7598/attachment/{ID}/1/publisher"
-    ];
-    rr:predicateObjectMap [
-        rr:predicate ex:name;
-        rr:objectMap [  rr:constant "MěÚ Dolina" ];
-    ];
-    rr:predicateObjectMap [
-        rr:predicate ex:noID;
-        rr:objectMap [ 
-          rr:template "true";
-		  rr:datatype xsd:boolean; 
-        ];
-    ];
-    rr:predicateObjectMap [
-        rr:predicate ex:country;
-        rr:objectMap [  rr:constant "CZE" ];
-    ];
-    rr:predicateObjectMap [
-        rr:predicate ex:authentication;
-        rr:objectMap [  rr:constant "email" ];
-    ].
 
 <#AttachmentVersion> a rr:TriplesMap;
     rr:logicalTable <#AttachmentTableView>;

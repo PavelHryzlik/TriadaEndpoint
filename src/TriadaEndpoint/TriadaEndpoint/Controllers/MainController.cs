@@ -186,7 +186,13 @@ namespace TriadaEndpoint.Controllers
                     queryString.SetUri("subject", new Uri(String.Format("{0}/contract/{1}/{2}/{3}/{4}/{5}", baseUrl, id, verze, parameter, milestone, milestoneId)));
                 }
                 else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
-                    (parameter.Equals("version") || parameter.Equals("publisher") || parameter.Equals("implementation")))
+                    parameter.Equals("publisher"))
+                {
+                    queryString.CommandText = SelectBySubject;
+                    queryString.SetUri("subject", new Uri(String.Format("{0}/publisher", baseUrl)));
+                }
+                else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
+                    (parameter.Equals("version") || parameter.Equals("implementation")))
                 {
                     queryString.CommandText = SelectBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/contract/{1}/{2}/{3}", baseUrl, id, verze, parameter)));
@@ -214,10 +220,16 @@ namespace TriadaEndpoint.Controllers
                 string baseUrl = Request.Url.GetLeftPart(UriPartial.Authority);
 
                 if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
-                    (parameter.Equals("version") || parameter.Equals("publisher")))
+                    (parameter.Equals("version")))
                 {
                     queryString.CommandText = SelectBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/supplement/{1}/{2}/{3}", baseUrl, id, verze, parameter)));
+                }
+                else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
+                     parameter.Equals("publisher"))
+                {
+                    queryString.CommandText = SelectBySubject;
+                    queryString.SetUri("subject", new Uri(String.Format("{0}/publisher", baseUrl)));
                 }
                 else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze))
                 {
@@ -242,10 +254,16 @@ namespace TriadaEndpoint.Controllers
                 string baseUrl = Request.Url.GetLeftPart(UriPartial.Authority);
 
                 if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
-                    (parameter.Equals("version") || parameter.Equals("publisher")))
+                    (parameter.Equals("version")))
                 {
                     queryString.CommandText = SelectBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/attachment/{1}/{2}/{3}", baseUrl, id, verze, parameter)));
+                }
+                else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
+                         parameter.Equals("publisher"))
+                {
+                    queryString.CommandText = SelectBySubject;
+                    queryString.SetUri("subject", new Uri(String.Format("{0}/publisher", baseUrl)));
                 }
                 else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze))
                 {
@@ -311,6 +329,21 @@ namespace TriadaEndpoint.Controllers
                 }               
             }
             queryString.CommandText = Url.Encode(Files);
+
+            return RedirectPermanent("~/sparql?query=" + queryString);
+        }
+
+        [Route("~/publisher")]
+        public ActionResult GetPublisher()
+        {
+            var queryString = new SparqlParameterizedString();
+            if (Request.Url != null)
+            {
+                string baseUrl = Request.Url.GetLeftPart(UriPartial.Authority);
+                
+                queryString.CommandText = SelectBySubject;
+                queryString.SetUri("subject", new Uri(String.Format("{0}/publisher", baseUrl)));
+            }
 
             return RedirectPermanent("~/sparql?query=" + queryString);
         }
