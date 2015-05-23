@@ -147,6 +147,7 @@
     <Compile Include="Controllers\ISparqlActionResultWritterr.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\SparqlActionResultWritter.cs" />
+    <Compile Include="Controllers\W3CSpecHelper.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

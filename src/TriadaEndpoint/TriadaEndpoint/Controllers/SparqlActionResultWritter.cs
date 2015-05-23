@@ -1,7 +1,10 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Web.Mvc;
 using VDS.RDF;
 using VDS.RDF.Query;
+using VDS.RDF.Query.Algebra;
 
 namespace TriadaEndpoint.Controllers
 {
@@ -57,10 +60,31 @@ namespace TriadaEndpoint.Controllers
         /// <returns>FileContentResult as ActionResult</returns>
         public ActionResult Write(SparqlResultSet sparqlResultSet, string contentType)
         {
+            //var stopWatch = new Stopwatch();
+            //stopWatch.Start();
+
+            var resultSet = new List<SparqlResult>();
+            foreach (var sparqlResult in sparqlResultSet)
+            {
+                var set = new Set();
+
+                foreach (var variable in sparqlResult.Variables)
+                {
+                    INode n;
+                    sparqlResult.TryGetValue(variable, out n);
+                    set.Add(variable, W3CSpecHelper.FormatNode(n));
+                }
+
+                resultSet.Add(new SparqlResult(set));
+            }
+
+            //stopWatch.Stop();
+            //var elapsed = stopWatch.ElapsedMilliseconds;
+
             using (var ms = new MemoryStream())
             using (var sw = new StreamWriter(ms))
             {
-                _writter.Save(sparqlResultSet, sw);
+                _writter.Save(new SparqlResultSet(resultSet), sw);
                 return new FileContentResult(ms.ToArray(), contentType);
             }
         }
