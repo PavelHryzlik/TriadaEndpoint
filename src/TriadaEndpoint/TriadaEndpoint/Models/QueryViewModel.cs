@@ -32,5 +32,7 @@ namespace TriadaEndpoint.Models
         RdfXml,
         [Display(Name = "CSV")]
         Csv,
+        [Display(Name = "JSON-LD")]
+        JsonLd
     }
 }

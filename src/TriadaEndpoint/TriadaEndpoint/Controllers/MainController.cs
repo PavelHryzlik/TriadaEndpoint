@@ -11,13 +11,15 @@ namespace TriadaEndpoint.Controllers
 {
     public class MainController : Controller
     {
-        private const string BasePrefix = "PREFIX ex: <http://example.com/ns#> ";
-        private const string Contracts = BasePrefix + "SELECT * WHERE { ?contracts a ex:Contract }";
-        private const string Supplement = BasePrefix + "SELECT * WHERE { ?supplements a ex:Supplement }";
-        private const string Attachment = BasePrefix + "SELECT * WHERE { ?attachments a ex:Attachment }";
-        private const string Parties = BasePrefix + "SELECT * WHERE { ?parties a ex:Party }";
-        private const string Files = BasePrefix + "SELECT ?files WHERE { ?_ ex:document ?files }";
+        private const string BasePrefix = "PREFIX : <http://tiny.cc/open-contracting#> ";
+        private const string Contracts = BasePrefix + "SELECT * WHERE { ?contracts a :Contract }";
+        private const string Amendment = BasePrefix + "SELECT * WHERE { ?amendments a :Amendment }";
+        private const string Attachment = BasePrefix + "SELECT * WHERE { ?attachments a :Attachment }";
+        private const string Parties = BasePrefix + "SELECT * WHERE { ?parties a :party }";
+        private const string Files = BasePrefix + "SELECT ?files WHERE { ?_ :document ?files }";
         private const string SelectBySubject = "SELECT * WHERE { @subject ?p ?o }";
+
+        private const string JsonLdContractContext = "http://tiny.cc/open-contracting_context";
 
         public ActionResult Index()
         {
@@ -32,7 +34,7 @@ namespace TriadaEndpoint.Controllers
                 try
                 {
                     var graph = new Graph();
-                    R2RmlStorageWrapper.Storage.LoadGraph(graph, "http://example.com/ns#");
+                    R2RmlStorageWrapper.Storage.LoadGraph(graph, "http://tiny.cc/open-contracting#");
 
                     IGraphActionResultWritter graphActionWriter;
 
@@ -54,6 +56,9 @@ namespace TriadaEndpoint.Controllers
                             break;
                         case ResultFormats.Csv:
                             graphActionWriter = new GraphActionResultWritter(new CsvWriter(), "text/csv");
+                            break;
+                        case ResultFormats.JsonLd:
+                            graphActionWriter = new GraphActionResultWritter(new JsonLdWriter { Context = new Uri(JsonLdContractContext) }, "application/ld+json");
                             break;
                         default:
                             graphActionWriter = new GraphActionResultWritter(new HtmlWriter(), "text/html");
@@ -96,6 +101,7 @@ namespace TriadaEndpoint.Controllers
                                         "text/turtle");
                                 break;
                             case ResultFormats.Json:
+                            case ResultFormats.JsonLd:
                                 sparqlActionWriter = new SparqlActionResultWritter(new SparqlJsonWriter(),
                                     "application/json");
                                 break;
@@ -143,6 +149,9 @@ namespace TriadaEndpoint.Controllers
                                 break;
                             case ResultFormats.Csv:
                                 graphActionWriter = new GraphActionResultWritter(new CsvWriter(), "text/csv");
+                                break;
+                            case ResultFormats.JsonLd:
+                                graphActionWriter = new GraphActionResultWritter(new JsonLdWriter { Context = new Uri(JsonLdContractContext) }, "application/ld+json");
                                 break;
                             default:
                                 graphActionWriter = new GraphActionResultWritter(new HtmlWriter(), "text/html");
@@ -211,7 +220,7 @@ namespace TriadaEndpoint.Controllers
             return RedirectPermanent("~/sparql?query=" + queryString);
         }
 
-        [Route("~/supplement/{id?}/{verze?}/{parameter?}")]
+        [Route("~/amendment/{id?}/{verze?}/{parameter?}")]
         public ActionResult GetSupplement(string id, string verze, string parameter)
         {
             var queryString = new SparqlParameterizedString();
@@ -223,7 +232,7 @@ namespace TriadaEndpoint.Controllers
                     (parameter.Equals("version")))
                 {
                     queryString.CommandText = SelectBySubject;
-                    queryString.SetUri("subject", new Uri(String.Format("{0}/supplement/{1}/{2}/{3}", baseUrl, id, verze, parameter)));
+                    queryString.SetUri("subject", new Uri(String.Format("{0}/amendment/{1}/{2}/{3}", baseUrl, id, verze, parameter)));
                 }
                 else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
                      parameter.Equals("publisher"))
@@ -234,11 +243,11 @@ namespace TriadaEndpoint.Controllers
                 else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze))
                 {
                     queryString.CommandText = SelectBySubject;
-                    queryString.SetUri("subject", new Uri(String.Format("{0}/supplement/{1}/{2}", baseUrl, id, verze)));
+                    queryString.SetUri("subject", new Uri(String.Format("{0}/amendment/{1}/{2}", baseUrl, id, verze)));
                 }
                 else
                 {
-                    queryString.CommandText = Url.Encode(Supplement);
+                    queryString.CommandText = Url.Encode(Amendment);
                 }
             }
 

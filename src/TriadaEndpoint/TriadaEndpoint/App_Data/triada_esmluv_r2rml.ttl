@@ -1,8 +1,7 @@
 ﻿# The R2RML mapping contracts
 
-@base			<http://localhost:7598/> .
+@base			<http://tiny.cc/open-contracting#> .
 @prefix rr:		<http://www.w3.org/ns/r2rml#> .
-@prefix ex:		<http://example.com/ns#>.
 
 @prefix cn:      <http://tiny.cc/open-contracting#> .
 @prefix com:     <https://w3id.org/commerce#> .
@@ -503,7 +502,7 @@
     ];
     rr:predicateObjectMap [
       rr:predicate cn:amendments;
-      rr:objectMap [ rr:template "http://localhost:7598/supplement/{ID}/{PoradiVerzeDodatku}" ];
+      rr:objectMap [ rr:template "http://localhost:7598/amendment/{ID}/{PoradiVerzeDodatku}" ];
     ].
 
 <#ContractAttachments> a rr:TriplesMap;
@@ -519,8 +518,8 @@
 <#Supplement> a rr:TriplesMap;
     rr:logicalTable <#SupplementTableView>;
     rr:subjectMap [
-      rr:template "http://localhost:7598/supplement/{ID}/{PoradiVerzeDodatku}";
-      rr:class ex:Amendment;
+      rr:template "http://localhost:7598/amendment/{ID}/{PoradiVerzeDodatku}";
+      rr:class cn:Amendment;
     ];
     rr:predicateObjectMap [
       rr:predicate dcmi:type;
@@ -539,7 +538,7 @@
     ];
 	rr:predicateObjectMap [
       rr:predicate com:source;
-      rr:objectMap [ rr:template "http://localhost:7598/contract/{RODIC}/{PORADIVERZE}" ];
+      rr:objectMap [ rr:template "http://localhost:7598/amendment/{RODIC}/{PORADIVERZE}" ];
     ];
 	rr:predicateObjectMap [
       rr:predicate dc:identifier;
@@ -554,17 +553,17 @@
     ];
     rr:predicateObjectMap [
       rr:predicate dc:publisher;
-      rr:objectMap [ rr:template "http://localhost:7598/supplement/{ID}/{PoradiVerzeDodatku}/publisher" ];
+      rr:objectMap [ rr:template "http://localhost:7598/amendment/{ID}/{PoradiVerzeDodatku}/publisher" ];
     ];
     rr:predicateObjectMap [
       rr:predicate cn:version;
-      rr:objectMap [ rr:template "http://localhost:7598/supplement/{ID}/{PoradiVerzeDodatku}/version" ];
+      rr:objectMap [ rr:template "http://localhost:7598/amendment/{ID}/{PoradiVerzeDodatku}/version" ];
     ].
 
 <#SupplementValid> a rr:TriplesMap;
     rr:logicalTable <#SupplementValidTableView>;
     rr:subjectMap [
-        rr:template "http://localhost:7598/supplement/{ID}/{PORADIVERZE}"
+        rr:template "http://localhost:7598/amendment/{ID}/{PORADIVERZE}"
     ];
     rr:predicateObjectMap [
         rr:predicate cn:valid;
@@ -577,7 +576,7 @@
 <#SupplementFile> a rr:TriplesMap;
     rr:logicalTable <#SupplementFilesTableView>;
     rr:subjectMap [
-        rr:template "http://localhost:7598/supplement/{ID}/{PORADIVERZE}"
+        rr:template "http://localhost:7598/amendment/{ID}/{PORADIVERZE}"
     ];
     rr:predicateObjectMap [
         rr:predicate com:contentUrl;
@@ -587,7 +586,7 @@
 <#SupplementResponsiblePerson1> a rr:TriplesMap;
     rr:logicalTable <#SupplementResponsiblePersons1TableView>;
     rr:subjectMap [
-        rr:template "http://localhost:7598/supplement/{ID}/{PORADIVERZE}"
+        rr:template "http://localhost:7598/amendment/{ID}/{PORADIVERZE}"
     ];
 	rr:predicateObjectMap [
         rr:predicate cn:responsiblePerson;
@@ -597,7 +596,7 @@
 <#SupplementResponsiblePerson2> a rr:TriplesMap;
     rr:logicalTable <#SupplementResponsiblePersons2TableView>;
     rr:subjectMap [
-        rr:template "http://localhost:7598/supplement/{ID}/{PORADIVERZE}"
+        rr:template "http://localhost:7598/amendment/{ID}/{PORADIVERZE}"
     ];
 	rr:predicateObjectMap [
         rr:predicate cn:responsiblePerson;
@@ -607,7 +606,7 @@
 <#SupplementPublisher> a rr:TriplesMap;
     rr:logicalTable <#SupplementTableView>;
     rr:subjectMap [
-        rr:template "http://localhost:7598/supplement/{ID}/{PoradiVerzeDodatku}/publisher";
+        rr:template "http://localhost:7598/amendment/{ID}/{PoradiVerzeDodatku}/publisher";
 		rr:class foaf:Organization;
     ];
     rr:predicateObjectMap [
@@ -633,12 +632,12 @@
 <#SupplementVersion> a rr:TriplesMap;
     rr:logicalTable <#SupplementTableView>;
     rr:subjectMap [
-        rr:template "http://localhost:7598/supplement/{ID}/{PoradiVerzeDodatku}/version";
-		rr:class ex:Version;
+        rr:template "http://localhost:7598/amendment/{ID}/{PoradiVerzeDodatku}/version";
+		rr:class cn:Version;
     ];
     rr:predicateObjectMap [
         rr:predicate com:source;
-        rr:objectMap [  rr:template "http://localhost:7598/supplement/{ID}/{PoradiVerzeDodatku}" ];
+        rr:objectMap [  rr:template "http://localhost:7598/amendment/{ID}/{PoradiVerzeDodatku}" ];
     ];
 	rr:predicateObjectMap [
         rr:predicate cn:versionOrder;
@@ -659,7 +658,7 @@
     rr:logicalTable <#AttachmentTableView>;
     rr:subjectMap [
       rr:template "http://localhost:7598/attachment/{ID}/1";
-      rr:class ex:Attachment;
+      rr:class cn:Attachment;
     ];
     rr:predicateObjectMap [
       rr:predicate dcmi:type;

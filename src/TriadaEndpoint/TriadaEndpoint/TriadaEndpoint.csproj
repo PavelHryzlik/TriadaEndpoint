@@ -51,6 +51,9 @@
     <Reference Include="HtmlAgilityPack">
       <HintPath>..\packages\HtmlAgilityPack.1.4.9\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
+    <Reference Include="JsonLD">
+      <HintPath>..\packages\json-ld.net.1.0.4\lib\net40-Client\JsonLD.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -142,9 +145,13 @@
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
+    <Compile Include="Controllers\BaseNTripleFormatter.cs" />
     <Compile Include="Controllers\GraphActionResultWritter.cs" />
     <Compile Include="Controllers\IGraphActionResultWritter.cs" />
     <Compile Include="Controllers\ISparqlActionResultWritterr.cs" />
+    <Compile Include="Controllers\JsonLdWriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\SparqlActionResultWritter.cs" />
     <Compile Include="Controllers\W3CSpecHelper.cs" />
@@ -156,6 +163,7 @@
     <Compile Include="Models\QueryViewModel.cs" />
     <Compile Include="Models\R2RmlStorageWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\LinqExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\web.config" />
