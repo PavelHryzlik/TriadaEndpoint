@@ -18,24 +18,20 @@ namespace TriadaEndpoint.Controllers
                 node.NodeType == NodeType.Literal &&
                 ((ILiteralNode)node).DataType != null)
             {
-                DateTime dateTime;
-
                 switch (((ILiteralNode) node).DataType.ToString())
                 {
                     case XmlSpecsHelper.XmlSchemaDataTypeDateTime:
-                        dateTime = DateTime.Parse(((ILiteralNode) node).Value);
-                        break;
+                        var dateTime = DateTime.Parse(((ILiteralNode) node).Value);
+                        return new DateTimeNode(node.Graph, new DateTimeOffset(dateTime));
                     case XmlSpecsHelper.XmlSchemaDataTypeDate:
-                        dateTime = DateTime.Parse(((ILiteralNode) node).Value);
-                        break;
+                        var date = DateTime.Parse(((ILiteralNode) node).Value);
+                        return new DateNode(node.Graph, date);
                     case XmlSpecsHelper.XmlSchemaDataTypeTime:
-                        dateTime = DateTime.Parse(((ILiteralNode) node).Value);
-                        break;
+                        var timeSpan = TimeSpan.Parse(((ILiteralNode)node).Value);
+                        return new TimeSpanNode(node.Graph, timeSpan);
                     default:
                         return node;
                 }
-
-                return new DateTimeNode(node.Graph, dateTime);
             }
             return node;
         }

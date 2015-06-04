@@ -97,12 +97,24 @@ namespace TriadaEndpoint.Controllers
 
                 if (document["publisher"] != null)
                 {
-                    document["publisher"] = jsonLdCompacted["@graph"].Children().FirstOrDefault(n => n["@id"].ToString() == document["publisher"]["@id"].ToString());
+                    document["publisher"] = jsonLdCompacted["@graph"].Children().FirstOrDefault(n => n["@type"].ToString() == "Publisher");
                 }
 
                 if (document["implementation"] != null)
                 {
                     document["implementation"] = jsonLdCompacted["@graph"].Children().FirstOrDefault(n => n["@id"].ToString() == document["implementation"]["@id"].ToString());
+
+                    var implementation = document["implementation"];
+                    if (implementation != null && implementation["milestones"] != null)
+                    {
+                        var milestones = new Newtonsoft.Json.Linq.JArray();
+                        foreach (var milestoneToken in implementation["milestones"])
+                        {
+                            var milestone = jsonLdCompacted["@graph"].Children().FirstOrDefault(n => n["@id"].ToString() == ((Newtonsoft.Json.Linq.JValue)milestoneToken).Value.ToString());
+                            milestones.Add(milestone);
+                        }
+                        implementation["milestones"] = milestones;
+                    }
                 }
 
                 if (document["versions"] != null)
