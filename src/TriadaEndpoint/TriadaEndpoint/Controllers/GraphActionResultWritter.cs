@@ -1,7 +1,13 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Web;
+using System.Web.Caching;
 using System.Web.Mvc;
+using Microsoft.Ajax.Utilities;
 using VDS.RDF;
 using WebGrease.Css.Extensions;
+using Context = System.Runtime.Remoting.Contexts.Context;
 using Graph = VDS.RDF.Graph;
 
 
@@ -65,12 +71,16 @@ namespace TriadaEndpoint.Controllers
             //stopWatch.Stop();
             //var elapsed = stopWatch.ElapsedMilliseconds;
 
-            using (var ms = new MemoryStream())
-            using (var sw = new StreamWriter(ms))
+            var filename = AppDomain.CurrentDomain.BaseDirectory + "App_Data\\output";
+
+            using (var fsw = new FileStream(filename, FileMode.Create, FileAccess.Write))
+            using (var sw = new StreamWriter(fsw))
             {
-                _writter.Save(resultGraph, sw);
-                return new FileContentResult(ms.ToArray(), contentType);
+                //_writter.Save(graph, sw);
+                _writter.Save(resultGraph, sw);    
             }
+
+            return new DownloadResult(new FileStream(filename, FileMode.Open), contentType);
         }
     }
 }

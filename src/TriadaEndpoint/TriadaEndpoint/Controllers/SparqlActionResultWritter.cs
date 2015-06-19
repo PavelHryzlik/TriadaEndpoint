@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Web.Mvc;
 using VDS.RDF;
@@ -80,12 +81,15 @@ namespace TriadaEndpoint.Controllers
             //stopWatch.Stop();
             //var elapsed = stopWatch.ElapsedMilliseconds;
 
-            using (var ms = new MemoryStream())
-            using (var sw = new StreamWriter(ms))
+            var filename = AppDomain.CurrentDomain.BaseDirectory + "App_Data\\output";
+
+            using (var fsw = new FileStream(filename, FileMode.Create, FileAccess.Write))
+            using (var sw = new StreamWriter(fsw))
             {
                 _writter.Save(new SparqlResultSet(resultSet), sw);
-                return new FileContentResult(ms.ToArray(), contentType);
             }
+
+            return new DownloadResult(new FileStream(filename, FileMode.Open), contentType);
         }
     }
 }

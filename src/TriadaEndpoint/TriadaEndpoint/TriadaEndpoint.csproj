@@ -146,6 +146,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="Controllers\BaseNTripleFormatter.cs" />
+    <Compile Include="Controllers\DownloadResult.cs" />
     <Compile Include="Controllers\GraphActionResultWritter.cs" />
     <Compile Include="Controllers\IGraphActionResultWritter.cs" />
     <Compile Include="Controllers\ISparqlActionResultWritterr.cs" />
