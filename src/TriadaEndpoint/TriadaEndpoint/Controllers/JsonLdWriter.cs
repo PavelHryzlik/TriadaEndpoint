@@ -154,8 +154,8 @@ namespace TriadaEndpoint.Controllers
             var writer = new Newtonsoft.Json.JsonTextWriter(output)
             {
                 Formatting = _prettyprint ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None
-            };  
-            writer.WriteRaw(resultJsonLd.ToString());
+            };
+            resultJsonLd.WriteTo(writer);
         }
 
 
