@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Web;
 using System.Web.Mvc;
+using log4net;
 using TriadaEndpoint.Models;
 using VDS.RDF;
 using VDS.RDF.Query;
@@ -11,6 +14,8 @@ namespace TriadaEndpoint.Controllers
 {
     public class MainController : Controller
     {
+        private readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private const string BasePrefix = "PREFIX : <http://tiny.cc/open-contracting#> ";
         private const string Contracts = BasePrefix + "SELECT * WHERE { ?contracts a :Contract }";
         private const string Amendment = BasePrefix + "SELECT * WHERE { ?amendments a :Amendment }";
@@ -33,8 +38,13 @@ namespace TriadaEndpoint.Controllers
             {
                 try
                 {
+                    var stopWatch = Stopwatch.StartNew();
+
                     var graph = new Graph();
                     R2RmlStorageWrapper.Storage.LoadGraph(graph, "http://tiny.cc/open-contracting#");
+
+                    var elepsedTime = stopWatch.ElapsedMilliseconds;
+                    _log.Info("GetDump - LoadGraph in " + stopWatch.ElapsedMilliseconds + "ms");
 
                     IGraphActionResultWritter graphActionWriter;
 
@@ -64,7 +74,15 @@ namespace TriadaEndpoint.Controllers
                             graphActionWriter = new GraphActionResultWritter(new HtmlWriter(), "text/html");
                             break;
                     }
-                    return graphActionWriter.Write(graph);
+
+                    var resultActionResult = graphActionWriter.Write(graph);
+
+                    stopWatch.Stop();
+                    var partTime = stopWatch.ElapsedMilliseconds - elepsedTime;
+                    _log.Info("GetDump - WriteGraph (" + format + ") in " + partTime + "ms");
+                    _log.Info("GetDump in " + stopWatch.ElapsedMilliseconds + "ms");
+
+                    return resultActionResult;
                 }
                 catch (Exception ex)
                 {
@@ -81,11 +99,16 @@ namespace TriadaEndpoint.Controllers
             {
                 try
                 {
+                    var stopWatch = Stopwatch.StartNew();
+
                     var parsedQuery = query.Split('&').ToList();
                     var sparqlQuery = parsedQuery[0];
                     var format = (parsedQuery.Count > 1) ? parsedQuery[1].Split('=')[1] : "Html";
 
                     var result = R2RmlStorageWrapper.Storage.Query(sparqlQuery);
+
+                    var elepsedTime = stopWatch.ElapsedMilliseconds;
+                    _log.Info("GetSparqlQuery " + query + " - QueryResult in " + stopWatch.ElapsedMilliseconds + "ms");
 
                     if (result is SparqlResultSet)
                     {
@@ -122,7 +145,15 @@ namespace TriadaEndpoint.Controllers
                                 sparqlActionWriter = new SparqlActionResultWritter(new SparqlHtmlWriter(), "text/html");
                                 break;
                         }
-                        return sparqlActionWriter.Write(resultSet);
+
+                        var resultActionResult = sparqlActionWriter.Write(resultSet);
+
+                        stopWatch.Stop();
+                        var partTime = stopWatch.ElapsedMilliseconds - elepsedTime;
+                        _log.Info("GetSparqlQuery " + query + " - WriteSparqlResult (" + format + ") in " + partTime + "ms");
+                        _log.Info("GetSparqlQuery " + query + " in " + stopWatch.ElapsedMilliseconds + "ms");
+
+                        return resultActionResult;
                     }
 
                     if (result is IGraph)
@@ -157,7 +188,15 @@ namespace TriadaEndpoint.Controllers
                                 graphActionWriter = new GraphActionResultWritter(new HtmlWriter(), "text/html");
                                 break;
                         }
-                        return graphActionWriter.Write(graph);
+
+                        var resultActionResult = graphActionWriter.Write(graph);
+
+                        stopWatch.Stop();
+                        var partTime = stopWatch.ElapsedMilliseconds - elepsedTime;
+                        _log.Info("GetSparqlQuery " + query + " - WriteGraph (" + format + ") in " + partTime + "ms");
+                        _log.Info("GetSparqlQuery " + query + " in " + stopWatch.ElapsedMilliseconds + "ms");
+
+                        return resultActionResult;
                     }
                 }
                 catch (Exception ex)

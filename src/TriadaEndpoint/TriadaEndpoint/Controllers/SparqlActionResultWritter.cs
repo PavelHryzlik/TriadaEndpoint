@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Web.Mvc;
+using log4net;
 using VDS.RDF;
 using VDS.RDF.Query;
 using VDS.RDF.Query.Algebra;
@@ -13,6 +16,8 @@ namespace TriadaEndpoint.Controllers
     /// </summary>
     public class SparqlActionResultWritter : ISparqlActionResultWritter
     {
+        private readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// dotNetRDF SparqlResultsWriter
         /// </summary>
@@ -60,8 +65,7 @@ namespace TriadaEndpoint.Controllers
         /// <returns>FileContentResult as ActionResult</returns>
         public ActionResult Write(SparqlResultSet sparqlResultSet, string contentType)
         {
-            //var stopWatch = new Stopwatch();
-            //stopWatch.Start();
+            var stopWatch = Stopwatch.StartNew();
 
             var resultSet = new List<SparqlResult>();
             foreach (var sparqlResult in sparqlResultSet)
@@ -78,8 +82,7 @@ namespace TriadaEndpoint.Controllers
                 resultSet.Add(new SparqlResult(set));
             }
 
-            //stopWatch.Stop();
-            //var elapsed = stopWatch.ElapsedMilliseconds;
+            _log.Info("Graph - Postprocess in " + stopWatch.ElapsedMilliseconds + "ms");
 
             var filename = AppDomain.CurrentDomain.BaseDirectory + "App_Data\\output";
 
@@ -88,6 +91,9 @@ namespace TriadaEndpoint.Controllers
             {
                 _writter.Save(new SparqlResultSet(resultSet), sw);
             }
+
+            stopWatch.Stop();
+            _log.Info("Graph - SaveGraphToFile in " + stopWatch.ElapsedMilliseconds + "ms");
 
             return new DownloadResult(new FileStream(filename, FileMode.Open), contentType);
         }

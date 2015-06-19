@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
+using log4net;
 using Microsoft.Ajax.Utilities;
 using VDS.RDF;
 using WebGrease.Css.Extensions;
@@ -15,6 +17,8 @@ namespace TriadaEndpoint.Controllers
 {
     public class GraphActionResultWritter : IGraphActionResultWritter
     {
+        private readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// dotNetRDF RdfWriter
         /// </summary>
@@ -62,14 +66,12 @@ namespace TriadaEndpoint.Controllers
         /// <returns>FileContentResult as ActionResult</returns>
         public ActionResult Write(IGraph graph, string contentType)
         {
-            //var stopWatch = new Stopwatch();
-            //stopWatch.Start();
+            var stopWatch = Stopwatch.StartNew();
 
             var resultGraph = new Graph {BaseUri = graph.BaseUri};
             graph.Triples.ForEach(x => resultGraph.Assert(new Triple(x.Subject, x.Predicate, W3CSpecHelper.FormatNode(x.Object))));
-
-            //stopWatch.Stop();
-            //var elapsed = stopWatch.ElapsedMilliseconds;
+           
+            _log.Info("Graph - Postprocess in " + stopWatch.ElapsedMilliseconds + "ms");
 
             var filename = AppDomain.CurrentDomain.BaseDirectory + "App_Data\\output";
 
@@ -79,6 +81,9 @@ namespace TriadaEndpoint.Controllers
                 //_writter.Save(graph, sw);
                 _writter.Save(resultGraph, sw);    
             }
+
+            stopWatch.Stop();
+            _log.Info("Graph - SaveGraphToFile in " + stopWatch.ElapsedMilliseconds + "ms");
 
             return new DownloadResult(new FileStream(filename, FileMode.Open), contentType);
         }

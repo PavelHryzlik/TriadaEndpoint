@@ -1,6 +1,7 @@
 ﻿using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using log4net.Config;
 using TriadaEndpoint.Models;
 
 namespace TriadaEndpoint
@@ -14,6 +15,7 @@ namespace TriadaEndpoint
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
             R2RmlStorageWrapper.InitializeR2RmlStorage();
+            XmlConfigurator.Configure();
             DULWrapper.InitializeDulApi();
         }
 
