@@ -28,11 +28,11 @@ namespace TriadaEndpoint.Models
         Json,
         [Display(Name = "N-Tripples")]
         NTripples,
+        [Display(Name = "XML")]
+        Xml,
         [Display(Name = "RDF/XML")]
         RdfXml,
         [Display(Name = "CSV")]
-        Csv,
-        [Display(Name = "JSON-LD")]
-        JsonLd
+        Csv
     }
 }

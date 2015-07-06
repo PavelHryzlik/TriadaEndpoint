@@ -149,16 +149,32 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="Controllers\BaseNTripleFormatter.cs" />
+    <Compile Include="Controllers\CsvResultHandler.cs" />
     <Compile Include="Controllers\DownloadResult.cs" />
-    <Compile Include="Controllers\GraphActionResultWritter.cs" />
-    <Compile Include="Controllers\IGraphActionResultWritter.cs" />
-    <Compile Include="Controllers\ISparqlActionResultWritterr.cs" />
+    <Compile Include="Controllers\GraphStreamResultWritter.cs" />
+    <Compile Include="Controllers\JsonLdDumpHandler.cs" />
     <Compile Include="Controllers\JsonLdWriter.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Controllers\JsonResulHandler.cs" />
     <Compile Include="Controllers\MainController.cs" />
-    <Compile Include="Controllers\SparqlActionResultWritter.cs" />
+    <Compile Include="Controllers\MimeTypeHelper.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Controllers\NTriplesRdfHandler.cs" />
+    <Compile Include="Controllers\NTriplesResultHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Controllers\RdfXmlResultHandler.cs" />
+    <Compile Include="Controllers\HtmlResultHandler.cs" />
+    <Compile Include="Controllers\StreamQueryResult.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Controllers\TurtleResultHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Controllers\W3CSpecHelper.cs" />
+    <Compile Include="Controllers\XmlResultHandler.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

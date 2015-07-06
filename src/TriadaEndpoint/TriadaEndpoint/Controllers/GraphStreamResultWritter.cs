@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
 using log4net;
 using Microsoft.Ajax.Utilities;
+using TriadaEndpoint.Models;
 using VDS.RDF;
+using VDS.RDF.Parsing.Handlers;
 using WebGrease.Css.Extensions;
 using Context = System.Runtime.Remoting.Contexts.Context;
 using Graph = VDS.RDF.Graph;
@@ -15,7 +20,7 @@ using Graph = VDS.RDF.Graph;
 
 namespace TriadaEndpoint.Controllers
 {
-    public class GraphActionResultWritter : IGraphActionResultWritter
+    public class GraphStreamResultWritter
     {
         private readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -25,46 +30,21 @@ namespace TriadaEndpoint.Controllers
         private readonly IRdfWriter _writter;
 
         /// <summary>
-        /// Result MIME Type
-        /// </summary>
-        private readonly string _contentType;
-
-        /// <summary>
-        /// Get result MIME Type
-        /// </summary>
-        public string ContentType
-        {
-            get { return _contentType; }
-        }
-
-        /// <summary>
         /// Creates a new Graph Writer which will save Graph in the serialization of your choice
         /// </summary>
         /// <param name="writter">dotNetRDF SparqlResultsWriter</param>
         /// <param name="contentType">Result MIME Type, default: text/plain</param>
-        public GraphActionResultWritter(IRdfWriter writter, string contentType = "text/plain")
+        public GraphStreamResultWritter(IRdfWriter writter)
         {
             _writter = writter;
-            _contentType = contentType;
         }
 
         /// <summary>
-        /// Write the SPARQL Result Set to FileContentResult
+        /// ProcessQuery the SPARQL Result Set to FileContentResult
         /// </summary>
         /// <param name="graph">Graph to write</param>
         /// <returns>FileContentResult as ActionResult</returns>
-        public ActionResult Write(IGraph graph)
-        {
-            return Write(graph, _contentType);
-        }
-
-        /// <summary>
-        /// Write the SPARQL Result Set to FileContentResult
-        /// </summary>
-        /// <param name="graph">Graph to write</param>
-        /// <param name="contentType">Result MIME Type</param>
-        /// <returns>FileContentResult as ActionResult</returns>
-        public ActionResult Write(IGraph graph, string contentType)
+        public Stream Write(IGraph graph)
         {
             var stopWatch = Stopwatch.StartNew();
 
@@ -73,19 +53,25 @@ namespace TriadaEndpoint.Controllers
            
             _log.Info("Graph - Postprocess in " + stopWatch.ElapsedMilliseconds + "ms");
 
-            var filename = AppDomain.CurrentDomain.BaseDirectory + "App_Data\\output";
-
-            using (var fsw = new FileStream(filename, FileMode.Create, FileAccess.Write))
-            using (var sw = new StreamWriter(fsw))
+            var serverPipe = new AnonymousPipeServerStream(PipeDirection.Out);
+            Task.Run(() =>
             {
-                //_writter.Save(graph, sw);
-                _writter.Save(resultGraph, sw);    
-            }
+                using (serverPipe)
+                using (var sw = new StreamWriter(serverPipe, Encoding.UTF8, 4096))
+                {
+                    R2RmlStorageWrapper.Storage.Query(new GraphHandler(graph), null, "CONSTRUCT { ?s ?p ?o } FROM <http://tiny.cc/open-contracting#> WHERE { ?s ?p ?o }");
+
+                    _writter.Save(graph, sw);
+                }
+            });
+
+            var clientPipe = new AnonymousPipeClientStream(PipeDirection.In,
+                     serverPipe.ClientSafePipeHandle);
 
             stopWatch.Stop();
             _log.Info("Graph - SaveGraphToFile in " + stopWatch.ElapsedMilliseconds + "ms");
 
-            return new DownloadResult(new FileStream(filename, FileMode.Open), contentType);
+            return clientPipe;
         }
     }
 }

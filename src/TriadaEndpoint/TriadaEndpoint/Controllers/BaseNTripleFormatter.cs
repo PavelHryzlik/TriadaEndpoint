@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Web;
 using VDS.RDF;
 using VDS.RDF.Writing;
 using VDS.RDF.Writing.Formatting;
@@ -52,7 +49,7 @@ namespace TriadaEndpoint.Controllers
             var output = new StringBuilder();
 
             output.Append('"');
-            output.Append(l.Value);
+            output.Append(((ILiteralNode)W3CSpecHelper.FormatNode(l)).Value);
             output.Append('"');
 
             if (!l.Language.Equals(String.Empty))
