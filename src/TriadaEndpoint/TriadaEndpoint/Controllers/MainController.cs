@@ -97,36 +97,35 @@ namespace TriadaEndpoint.Controllers
                     if (store == "Stream")
                     {
                         ResultFormats resultFormat;
+                        if (format == "JsonLd")
+                        {
+                            var serverPipe = new AnonymousPipeServerStream(PipeDirection.Out);
+                            Task.Run(() =>
+                            {
+                                using (serverPipe)
+                                using (var sw = new StreamWriter(serverPipe, Encoding.UTF8, 4096))
+                                {
+                                    var jsonLdDumpHandler = new JsonLdDumpHandler(sw, new Uri(JsonLdContractContext), true, false);
+                                    jsonLdDumpHandler.WriteStartDocument();
+                                    jsonLdDumpHandler.WriteStartArray("documents");
+                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, "SELECT * WHERE { ?s a <http://tiny.cc/open-contracting#Contract> }");
+                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, "SELECT * WHERE { ?s a <http://tiny.cc/open-contracting#Amendment> }");
+                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, "SELECT * WHERE { ?s a <http://tiny.cc/open-contracting#Attachment> }");
+                                    jsonLdDumpHandler.WriteEndArray();
+                                    jsonLdDumpHandler.WriteStartArray("parties");
+                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, "SELECT * WHERE { ?s a <http://purl.org/goodrelations/v1#BusinessEntity> }");
+                                    jsonLdDumpHandler.WriteEndArray();
+                                    jsonLdDumpHandler.WriteEndDocument();
+                                }
+                            });
+
+                            var clientPipe = new AnonymousPipeClientStream(PipeDirection.In,
+                                     serverPipe.ClientSafePipeHandle);
+                            return new FileStreamResult(clientPipe, "application/ld+json");
+                        }
+
                         if (Enum.TryParse(format, out resultFormat))
                         {
-                            if (format == "JsonLd")
-                            {
-                                var serverPipe = new AnonymousPipeServerStream(PipeDirection.Out);
-                                Task.Run(() =>
-                                {
-                                    using (serverPipe)
-                                    using (var sw = new StreamWriter(serverPipe, Encoding.UTF8, 4096))
-                                    {
-                                        var jsonLdDumpHandler = new JsonLdDumpHandler(sw, new Uri(JsonLdContractContext), true, false);
-                                        jsonLdDumpHandler.WriteStartDocument();
-                                        jsonLdDumpHandler.WriteStartArray("documents");
-                                        R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, "SELECT * WHERE { ?s a <http://tiny.cc/open-contracting#Contract> }");
-                                        R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, "SELECT * WHERE { ?s a <http://tiny.cc/open-contracting#Amendment> }");
-                                        R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, "SELECT * WHERE { ?s a <http://tiny.cc/open-contracting#Attachment> }");
-                                        jsonLdDumpHandler.WriteEndArray();
-                                        jsonLdDumpHandler.WriteStartArray("parties");
-                                        R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, "SELECT * WHERE { ?s a <http://purl.org/goodrelations/v1#BusinessEntity> }");
-                                        jsonLdDumpHandler.WriteEndArray();
-                                        jsonLdDumpHandler.WriteEndDocument();
-                                    }
-                                });
-
-                                var clientPipe = new AnonymousPipeClientStream(PipeDirection.In,
-                                         serverPipe.ClientSafePipeHandle);
-                                return new FileStreamResult(clientPipe, "application/ld+json");
-                            }
-
-
                             var sparqlActionResultWritter = new StreamQueryResult();
                             var stream = sparqlActionResultWritter.ProcessQuery("CONSTRUCT { ?s ?p ?o } FROM <http://tiny.cc/open-contracting#> WHERE { ?s ?p ?o }", resultFormat);
 
