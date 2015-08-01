@@ -551,7 +551,7 @@
     ];
 	rr:predicateObjectMap [
       rr:predicate cn:contract;
-      rr:objectMap [ rr:template "http://localhost:7598/amendment/{RODIC}/{PORADIVERZE}" ];
+      rr:objectMap [ rr:template "http://localhost:7598/contract/{RODIC}/{PORADIVERZE}" ];
     ];
 	rr:predicateObjectMap [
       rr:predicate dc:identifier;
