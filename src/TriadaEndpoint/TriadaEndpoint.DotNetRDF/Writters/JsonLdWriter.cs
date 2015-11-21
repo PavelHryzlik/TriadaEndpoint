@@ -119,6 +119,11 @@ namespace TriadaEndpoint.DotNetRDF.Writters
                     }
                 }
 
+                if (document["amount"] != null)
+                {
+                    document["amount"] = Enumerable.FirstOrDefault<JToken>(jsonLdCompacted["@graph"].Children(), n => n["@id"].ToString() == document["amount"]["@id"].ToString());
+                }
+
                 if (document["versions"] != null)
                 {
                     var versions = new Newtonsoft.Json.Linq.JArray();

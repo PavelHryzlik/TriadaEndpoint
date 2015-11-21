@@ -208,7 +208,7 @@ namespace TriadaEndpoint.Web.Controllers
                     queryString.SetUri("subject", new Uri(String.Format("{0}/publisher", baseUrl)));
                 }
                 else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
-                    (parameter.Equals("version") || parameter.Equals("implementation")))
+                    (parameter.Equals("version") || parameter.Equals("implementation") || parameter.Equals("amount")))
                 {
                     queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/contract/{1}/{2}/{3}", baseUrl, id, verze, parameter)));

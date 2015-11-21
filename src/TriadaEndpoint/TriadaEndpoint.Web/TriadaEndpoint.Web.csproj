@@ -93,7 +93,7 @@
       <HintPath>..\packages\r2rml.net-unstable.0.3.3.20\lib\net40\TCode.r2rml4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="TriadaModulZaklad, Version=3.23.1.2, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="TriadaModulZaklad, Version=3.24.2.3, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\TriadaModulZaklad.dll</HintPath>
     </Reference>
