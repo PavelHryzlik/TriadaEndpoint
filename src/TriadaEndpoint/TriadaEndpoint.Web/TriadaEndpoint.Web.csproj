@@ -66,9 +66,9 @@
       <HintPath>..\packages\Newtonsoft.Json.6.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Slp.r2rml4net.Storage, Version=0.0.1.66, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\dotnetr2rmlstore.0.0.0.8-latest\lib\net45\Slp.r2rml4net.Storage.dll</HintPath>
+    <Reference Include="Slp.r2rml4net.Storage, Version=0.0.0.9, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\dotnetr2rmlstore.0.0.0.9-latest\lib\net45\Slp.r2rml4net.Storage.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
@@ -149,7 +149,9 @@
     <Content Include="Scripts\respond.js" />
     <Content Include="Scripts\respond.min.js" />
     <None Include="Scripts\_references.js" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
