@@ -32,11 +32,19 @@ namespace TriadaEndpoint.Web.Controllers
         private const string InMemory = "InMemory";
         private const string Stream = "Stream";
 
+        [HandleError]
         public ActionResult Index()
         {
             return View();
         }
 
+        [HandleError]
+        public ActionResult About()
+        {
+            return View();
+        }
+
+        [HandleError]
         [ValidateInput(false)]
         public ActionResult GetDump(string format, string store)
         {
@@ -140,6 +148,7 @@ namespace TriadaEndpoint.Web.Controllers
             return new EmptyResult();
         }
 
+        [HandleError]
         [ValidateInput(false)]
         public ActionResult GetSparqlQuery(string query)
         {
@@ -175,6 +184,7 @@ namespace TriadaEndpoint.Web.Controllers
             return new EmptyResult();
         }
 
+        [HandleError]
         [ValidateInput(false)]
         public ActionResult PostSparqlQuery(QueryViewModel queryViewModel)
         {
@@ -186,6 +196,7 @@ namespace TriadaEndpoint.Web.Controllers
             return RedirectPermanent("~/sparql?query=" + queryString + Url.Encode("&Format=" + queryViewModel.ResultFormat));
         }
 
+        [HandleError]
         [Route("~/contract/{id?}/{verze?}/{parameter?}/{milestone?}/{milestoneId?}")]
         public ActionResult GetContract(string id, string verze, string parameter, string milestone, string milestoneId)
         {
@@ -227,6 +238,7 @@ namespace TriadaEndpoint.Web.Controllers
             return RedirectPermanent("~/sparql?query=" + queryString);
         }
 
+        [HandleError]
         [Route("~/amendment/{id?}/{verze?}/{parameter?}")]
         public ActionResult GetAmendment(string id, string verze, string parameter)
         {
@@ -261,6 +273,7 @@ namespace TriadaEndpoint.Web.Controllers
             return RedirectPermanent("~/sparql?query=" + queryString);
         }
 
+        [HandleError]
         [Route("~/attachment/{id?}/{verze?}/{parameter?}")]
         public ActionResult GetAttachment(string id, string verze, string parameter)
         {
@@ -295,6 +308,7 @@ namespace TriadaEndpoint.Web.Controllers
             return RedirectPermanent("~/sparql?query=" + queryString);
         }
 
+        [HandleError]
         [Route("~/party/{id?}/{parameter?}")]
         public ActionResult GetParty(string id, string parameter)
         {
@@ -321,6 +335,7 @@ namespace TriadaEndpoint.Web.Controllers
             return RedirectPermanent("~/sparql?query=" + queryString);
         }
 
+        [HandleError]
         [Route("~/file/{fileGuid?}/{fileName?}")]
         public ActionResult GetFileSource(string fileGuid, string fileName)
         {
@@ -349,6 +364,7 @@ namespace TriadaEndpoint.Web.Controllers
             return RedirectPermanent("~/sparql?query=" + queryString);
         }
 
+        [HandleError]
         [Route("~/publisher")]
         public ActionResult GetPublisher()
         {

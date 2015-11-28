@@ -10,7 +10,7 @@
 
 </head>
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar navbar-default navbar-fixed-top">
         <div class="container">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -18,7 +18,15 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                @Html.ActionLink("Triada R2Rml endpoint", "", "", new { area = "" }, new { @class = "navbar-brand" })
+                @Html.ActionLink("Triada R2Rml endpoint", "", "", new {area = ""}, new {@class = "navbar-brand"})
+            </div>
+
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://opendata.cz/">Open data</a></li>
+                    <li><a href="http://standard.zindex.cz/">Datový standard</a></li>
+                    <li>@Html.ActionLink("O Aplikaci", "About")</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -26,7 +34,25 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year</p>
+            <div class="row">
+                <div class="col-md-2">
+                    <p>&copy; @DateTime.Now.Year - Pavel Hryzlík </p>
+                </div>
+                <div class="col-md-5 col-md-offset-5" style="float:right">
+                    <a href="http://opendata.cz/">
+                        <img alt="" class="img-thumbnail" style="height: 50px" src="@Url.Content("~/Content/images/opendata_cz.png")" />
+                    </a>
+                    <a href="http://www.w3.org/TR/REC-rdf-syntax/">
+                        <img alt="" class="img-thumbnail" style="height: 50px" src="@Url.Content("~/Content/images/rdf_w3c_icon.png")"/>
+                    </a>
+                    <a href="http://json-ld.org/">
+                        <img alt="" class="img-thumbnail" style="height: 50px" src="@Url.Content("~/Content/images/json-ld-logo.png")" />
+                    </a>
+                    <a href="http://www.mff.cuni.cz/">
+                        <img alt="" class="img-thumbnail" style="height:50px" src="@Url.Content("~/Content/images/mff.png")" />
+                    </a>
+                </div>
+            </div>
         </footer>
     </div>
 
