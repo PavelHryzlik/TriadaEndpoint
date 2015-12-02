@@ -197,8 +197,8 @@ namespace TriadaEndpoint.Web.Controllers
         }
 
         [HandleError]
-        [Route("~/contract/{id?}/{verze?}/{parameter?}/{milestone?}/{milestoneId?}")]
-        public ActionResult GetContract(string id, string verze, string parameter, string milestone, string milestoneId)
+        [Route("~/contract/{id?}/{verze?}/{parameter?}/{parameterId?}")]
+        public ActionResult GetContract(string id, string verze, string parameter, string parameterId)
         {
             var queryString = new SparqlParameterizedString();
             if (Request.Url != null)
@@ -206,11 +206,10 @@ namespace TriadaEndpoint.Web.Controllers
                 string baseUrl = Request.Url.GetLeftPart(UriPartial.Authority);
 
                 if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) &&
-                    !String.IsNullOrEmpty(parameter) && !String.IsNullOrEmpty(milestone)
-                    && !String.IsNullOrEmpty(milestoneId) && parameter.Equals("implementation"))
+                    !String.IsNullOrEmpty(parameter) && !String.IsNullOrEmpty(parameterId))
                 {
                     queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
-                    queryString.SetUri("subject", new Uri(String.Format("{0}/contract/{1}/{2}/{3}/{4}/{5}", baseUrl, id, verze, parameter, milestone, milestoneId)));
+                    queryString.SetUri("subject", new Uri(String.Format("{0}/contract/{1}/{2}/{3}/{4}", baseUrl, id, verze, parameter, parameterId)));
                 }
                 else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
                     parameter.Equals("publisher"))
