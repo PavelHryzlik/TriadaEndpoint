@@ -10,6 +10,9 @@ using VDS.RDF.Writing.Formatting;
 
 namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
 {
+    /// <summary>
+    /// Handler formatting SparqlResults to Csv representation
+    /// </summary>
     public class CsvResultHandler : BaseResultsHandler
     {
         private readonly TextWriter _writter;
@@ -17,30 +20,47 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
         private readonly bool _closeOutput;
         private bool _firstResult = true;
 
+        /// <summary>
+        /// Handler constructor
+        /// </summary>
+        /// <param name="output">Input Text writter</param>
+        /// <param name="closeOutput">Indicates whether to close writter at the end</param>
         public CsvResultHandler(TextWriter output, bool closeOutput)
         {
             _writter = output;
             _closeOutput = closeOutput;
         }
 
+        /// <summary>
+        /// Write end of the document
+        /// </summary>
+        /// <param name="ok"></param>
         protected override void EndResultsInternal(bool ok)
         {
             if (_closeOutput)
                 _writter.Close();
         }
 
-
+        /// <summary>
+        /// Method to handle Boolean result
+        /// </summary>
+        /// <param name="result"></param>
         protected override void HandleBooleanResultInternal(bool result)
         {
             _writter.Write(result.ToString());
         }
 
+        /// <summary>
+        /// Parse incoming SparqlResult (one row) to CSV
+        /// </summary>
+        /// <param name="result">SparqlResult</param>
+        /// <returns></returns>
         protected override bool HandleResultInternal(SparqlResult result)
         {           
             String[] vars = result.Variables.ToArray();
             if (_firstResult)
             {
-                //Output Variables first
+                //Write output variables first
                 for (int i = 0; i < vars.Length; i++)
                 {
                     _writter.Write(vars[i]);
@@ -55,7 +75,7 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
             {
                 if (result.HasValue(vars[i]))
                 {
-                    INode temp = W3CSpecHelper.FormatNode(result[vars[i]]);
+                    INode temp = W3CSpecHelper.FormatNode(result[vars[i]]); // Format by W3C spec.
                     if (temp != null)
                     {
                         switch (temp.NodeType)
@@ -79,6 +99,11 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
             return true;
         }
 
+        /// <summary>
+        /// Method to handle the variables
+        /// </summary>
+        /// <param name="var">Variable</param>
+        /// <returns></returns>
         protected override bool HandleVariableInternal(string var)
         {
             return true;

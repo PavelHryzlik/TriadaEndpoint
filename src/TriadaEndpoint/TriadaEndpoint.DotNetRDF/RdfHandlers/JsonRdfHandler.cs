@@ -8,18 +8,22 @@ using VDS.RDF.Writing;
 
 namespace TriadaEndpoint.DotNetRDF.RdfHandlers
 {
+    /// <summary>
+    /// Handler formatting Triples (RDF graph) to Json representation
+    /// </summary>
     public class JsonRdfHandler : BaseRdfHandler
     {
         private readonly JsonTextWriter _writter;
         private readonly bool _closeOnEnd;
 
         private Uri _baseUri;
-        public Uri BaseUri
-        {
-            get { return _baseUri; }
-        }
+        public Uri BaseUri => _baseUri;
 
-
+        /// <summary>
+        /// Handler constructor
+        /// </summary>
+        /// <param name="output">Input Text writter</param>
+        /// <param name="closeOnEnd">Indicates whether to close writter at the end</param>
         public JsonRdfHandler(TextWriter output, bool closeOnEnd)
         {
             _writter = new JsonTextWriter(output);
@@ -68,7 +72,11 @@ namespace TriadaEndpoint.DotNetRDF.RdfHandlers
                 _writter.Close();
         }
 
-
+        /// <summary>
+        /// Parse incoming Triple to Json
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
         protected override bool HandleTripleInternal(Triple t)
         {
             //Create a Binding Object
@@ -105,24 +113,19 @@ namespace TriadaEndpoint.DotNetRDF.RdfHandlers
 
                     case NodeType.Literal:
                         //Literal
-                        var lit = (ILiteralNode)W3CSpecHelper.FormatNode(value);
-                        if (lit.DataType != null)
-                        {
-                            _writter.WriteValue("typed-literal");
-                        }
-                        else
-                        {
-                            _writter.WriteValue("literal");
-                        }
+                        var lit = (ILiteralNode)W3CSpecHelper.FormatNode(value); // Format by W3C spec.
+
+                        _writter.WriteValue(lit.DataType != null ? "typed-literal" : "literal");
+
                         _writter.WritePropertyName("value");
 
                         _writter.WriteValue(lit.Value);
-                        if (!lit.Language.Equals(String.Empty))
+                        if (!lit.Language.Equals(String.Empty)) // Set language attribute
                         {
                             _writter.WritePropertyName("xml:lang");
                             _writter.WriteValue(lit.Language);
                         }
-                        else if (lit.DataType != null)
+                        else if (lit.DataType != null) // Set datatype 
                         {
                             _writter.WritePropertyName("datatype");
                             _writter.WriteValue(lit.DataType.AbsoluteUri);
@@ -149,15 +152,17 @@ namespace TriadaEndpoint.DotNetRDF.RdfHandlers
             return true;
         }
 
+        /// <summary>
+        /// Method to handle Base Uri
+        /// </summary>
+        /// <param name="baseUri">Variable</param>
+        /// <returns></returns>
         protected override bool HandleBaseUriInternal(Uri baseUri)
         {
             _baseUri = baseUri;
             return true;
         }
 
-        public override bool AcceptsAll
-        {
-            get { return true; }
-        }
+        public override bool AcceptsAll => true;
     }
 }

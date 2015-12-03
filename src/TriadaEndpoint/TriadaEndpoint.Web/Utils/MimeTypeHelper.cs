@@ -4,6 +4,11 @@ namespace TriadaEndpoint.Web.Utils
 {
     public static class MimeTypeHelper
     {
+        /// <summary>
+        /// Get corresponding mimeType by outpu format
+        /// </summary>
+        /// <param name="resultFormats">Output format</param>
+        /// <returns></returns>
         public static string GetMimeType(ResultFormats resultFormats)
         {
             switch (resultFormats)

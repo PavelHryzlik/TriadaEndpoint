@@ -10,6 +10,9 @@ using VDS.RDF.Writing.Formatting;
 
 namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
 {
+    /// <summary>
+    /// Handler formatting SparqlResults to Html representation
+    /// </summary>
     public class HtmlResultHandler : BaseResultsHandler
     {
         private const String UriClass = "uri";
@@ -50,6 +53,11 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
             }
         }
 
+        /// <summary>
+        /// Handler constructor
+        /// </summary>
+        /// <param name="output">Input Text writter</param>
+        /// <param name="closeOutput">Indicates whether to close writter at the end</param>
         public HtmlResultHandler(TextWriter output, bool closeOutput)
         {
             //TODO More settings
@@ -57,6 +65,9 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
             _closeOutput = closeOutput;
         }
 
+        /// <summary>
+        /// Write start of the document
+        /// </summary>
         protected override void StartResultsInternal()
         {
             _qnameMapper = new QNameOutputMapper(_namespaces ?? new NamespaceMapper(true));
@@ -76,6 +87,10 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
             _writter.RenderBeginTag(HtmlTextWriterTag.Body);
         }
 
+        /// <summary>
+        /// Write end of the document
+        /// </summary>
+        /// <param name="ok"></param>
         protected override void EndResultsInternal(bool ok)
         {
             if (!_firstResult)
@@ -95,6 +110,10 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
                 _writter.Close();
         }
 
+        /// <summary>
+        /// Method to handle Boolean result
+        /// </summary>
+        /// <param name="result"></param>
         protected override void HandleBooleanResultInternal(bool result)
         {
             //Show a Header and a Boolean value
@@ -106,8 +125,14 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
             _writter.RenderEndTag();
         }
 
+        /// <summary>
+        /// Parse incoming SparqlResult (one row) to html table
+        /// </summary>
+        /// <param name="result">SparqlResult</param>
+        /// <returns></returns>
         protected override bool HandleResultInternal(SparqlResult result)
         {
+            //Write headers and output variables
             if (_firstResult)
             {
                 //Create a Table for the results
@@ -153,7 +178,7 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
                     {
                         switch (value.NodeType)
                         {
-                            case NodeType.Blank:
+                            case NodeType.Blank: // Write blank node
                                 _writter.AddAttribute(HtmlTextWriterAttribute.Class, BnodeClass);
                                 _writter.RenderBeginTag(HtmlTextWriterTag.Span);
                                 _writter.WriteEncodedText(value.ToString());
@@ -161,10 +186,10 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
                                 break;
 
                             case NodeType.Literal:
-                                var lit = (ILiteralNode)W3CSpecHelper.FormatNode(value);
+                                var lit = (ILiteralNode)W3CSpecHelper.FormatNode(value); // Format by W3C spec.
                                 _writter.AddAttribute(HtmlTextWriterAttribute.Class, LiteralClass);
                                 _writter.RenderBeginTag(HtmlTextWriterTag.Span);
-                                if (lit.DataType != null)
+                                if (lit.DataType != null) // Set datatype 
                                 {
                                     _writter.WriteEncodedText(lit.Value);
                                     _writter.RenderEndTag();
@@ -178,7 +203,7 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
                                 else
                                 {
                                     _writter.WriteEncodedText(lit.Value);
-                                    if (!lit.Language.Equals(String.Empty))
+                                    if (!lit.Language.Equals(String.Empty)) // Set language
                                     {
                                         _writter.RenderEndTag();
                                         _writter.WriteEncodedText("@");
@@ -198,7 +223,7 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
                                 //Error
                                 throw new RdfOutputException("Result Sets which contain Graph Literal Nodes cannot be serialized in the HTML Format");
 
-                            case NodeType.Uri:
+                            case NodeType.Uri:  // Write Uri as link
                                 _writter.AddAttribute(HtmlTextWriterAttribute.Class, UriClass);
                                 _writter.AddAttribute(HtmlTextWriterAttribute.Href, _formatter.FormatUri(UriPrefix + value.ToString()));
                                 _writter.RenderBeginTag(HtmlTextWriterTag.A);
@@ -242,6 +267,11 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
             return true;
         }
 
+        /// <summary>
+        /// Method to handle the variables
+        /// </summary>
+        /// <param name="var">Variable</param>
+        /// <returns></returns>
         protected override bool HandleVariableInternal(string var)
         {
             return true;

@@ -2,6 +2,9 @@
 
 namespace TriadaEndpoint.Web.Models
 {
+    /// <summary>
+    /// Class represents viewmodel for SPARQL endpoint
+    /// </summary>
     public class QueryViewModel
     {
         public QueryViewModel()
@@ -18,6 +21,9 @@ namespace TriadaEndpoint.Web.Models
         public ResultFormats ResultFormat { get; set; }
     }
 
+    /// <summary>
+    /// Avaible formats to output 
+    /// </summary>
     public enum ResultFormats
     {
         [Display(Name = "HTML")]

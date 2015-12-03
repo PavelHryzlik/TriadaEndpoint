@@ -9,18 +9,29 @@ using VDS.RDF.Writing;
 
 namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
 {
+    /// <summary>
+    /// Handler formatting SparqlResults to Rdf/Xml representation
+    /// </summary>
     public class RdfXmlResultHandler: BaseResultsHandler
     {
         private readonly XmlWriter _writter;
         private readonly bool _closeOutput;
         private bool _firstResult = true;
 
+        /// <summary>
+        /// Handler constructor
+        /// </summary>
+        /// <param name="output">Input Text writter</param>
+        /// <param name="closeOutput">Indicates whether to close writter at the end</param>
         public RdfXmlResultHandler(TextWriter output, bool closeOutput)
         {
             _writter = new XmlTextWriter(output) { Formatting = Formatting.Indented };
             _closeOutput = closeOutput;
         }
 
+        /// <summary>
+        /// Write start of the document
+        /// </summary>
         protected override void StartResultsInternal()
         {
             _writter.WriteStartDocument();
@@ -32,6 +43,10 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
             _writter.WriteStartElement("rs:ResultSet");
         }
 
+        /// <summary>
+        /// Write end of the document
+        /// </summary>
+        /// <param name="ok"></param>
         protected override void EndResultsInternal(bool ok)
         {
             _writter.WriteEndElement();
@@ -41,14 +56,19 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
                 _writter.Close();
         }
 
-
         protected override void HandleBooleanResultInternal(bool result)
         {
-            //TODO
+            throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Parse incoming SparqlResult (one row) to Rdf/Xml
+        /// </summary>
+        /// <param name="result">SparqlResult</param>
+        /// <returns></returns>
         protected override bool HandleResultInternal(SparqlResult result)
         {
+            //Write output variables first
             if (_firstResult)
             {
                 foreach (String var in result.Variables)
@@ -90,9 +110,9 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
 
                         case NodeType.Literal:
                             //<literal> element
-                            var l = (ILiteralNode)W3CSpecHelper.FormatNode(n);
+                            var l = (ILiteralNode)W3CSpecHelper.FormatNode(n); // Format by W3C spec.
 
-                            if (l.DataType != null)
+                            if (l.DataType != null) // Set datatype 
                             {
                                 _writter.WriteAttributeString("rdf:datatype", WriterHelper.EncodeForXml(l.DataType.ToString()));
                             }
@@ -120,6 +140,11 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
             return true;
         }
 
+        /// <summary>
+        /// Method to handle the variables
+        /// </summary>
+        /// <param name="var">Variable</param>
+        /// <returns></returns>
         protected override bool HandleVariableInternal(string var)
         {
             return true;

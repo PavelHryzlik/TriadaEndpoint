@@ -9,6 +9,9 @@ using VDS.RDF.Writing.Formatting;
 
 namespace TriadaEndpoint.DotNetRDF.RdfHandlers
 {
+    /// <summary>
+    /// Handler formatting Triples (RDF graph) to Html representation
+    /// </summary>
     public class HtmlRdfHandler : BaseRdfHandler
     {
         private const String UriClass = "uri";
@@ -49,18 +52,22 @@ namespace TriadaEndpoint.DotNetRDF.RdfHandlers
         }
 
         private Uri _baseUri;
-        public Uri BaseUri
-        {
-            get { return _baseUri; }
-        }
+        public Uri BaseUri => _baseUri;
 
-
+        /// <summary>
+        /// Handler constructor
+        /// </summary>
+        /// <param name="output">Input Text writter</param>
+        /// <param name="closeOnEnd">Indicates whether to close writter at the end</param>
         public HtmlRdfHandler(TextWriter output, bool closeOnEnd)
         {
             _writter = new HtmlTextWriter(output);
             _closeOnEnd = closeOnEnd;
         }
 
+        /// <summary>
+        /// Write start of the document
+        /// </summary>
         protected override void StartRdfInternal()
         {
             _qnameMapper = new QNameOutputMapper(_namespaces ?? new NamespaceMapper(true)); //TODO Handle base URI
@@ -109,6 +116,10 @@ namespace TriadaEndpoint.DotNetRDF.RdfHandlers
             _writter.RenderBeginTag(HtmlTextWriterTag.Tbody);
         }
 
+        /// <summary>
+        /// Write end of the document
+        /// </summary>
+        /// <param name="ok"></param>
         protected override void EndRdfInternal(bool ok)
         {
             //End Table Body
@@ -125,7 +136,11 @@ namespace TriadaEndpoint.DotNetRDF.RdfHandlers
                 _writter.Close();
         }
 
-
+        /// <summary>
+        /// Parse incoming Triple to Html
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
         protected override bool HandleTripleInternal(Triple t)
         {
             //Start Row
@@ -148,10 +163,10 @@ namespace TriadaEndpoint.DotNetRDF.RdfHandlers
                             break;
 
                         case NodeType.Literal:
-                            var lit = (ILiteralNode)W3CSpecHelper.FormatNode(value);
+                            var lit = (ILiteralNode)W3CSpecHelper.FormatNode(value); // Format by W3C spec.
                             _writter.AddAttribute(HtmlTextWriterAttribute.Class, LiteralClass);
                             _writter.RenderBeginTag(HtmlTextWriterTag.Span);
-                            if (lit.DataType != null)
+                            if (lit.DataType != null) // Set datatype 
                             {
                                 _writter.WriteEncodedText(lit.Value);
                                 _writter.RenderEndTag();
@@ -165,7 +180,7 @@ namespace TriadaEndpoint.DotNetRDF.RdfHandlers
                             else
                             {
                                 _writter.WriteEncodedText(lit.Value);
-                                if (!lit.Language.Equals(String.Empty))
+                                if (!lit.Language.Equals(String.Empty)) // Set language
                                 {
                                     _writter.RenderEndTag();
                                     _writter.WriteEncodedText("@");
@@ -182,23 +197,17 @@ namespace TriadaEndpoint.DotNetRDF.RdfHandlers
                             break;
 
                         case NodeType.GraphLiteral:
-                            //Error
                             throw new RdfOutputException("Result Sets which contain Graph Literal Nodes cannot be serialized in the HTML Format");
 
-                        case NodeType.Uri:
+                        case NodeType.Uri: // Write Uri as link
                             _writter.AddAttribute(HtmlTextWriterAttribute.Class, UriClass);
                             _writter.AddAttribute(HtmlTextWriterAttribute.Href, _formatter.FormatUri(UriPrefix + value.ToString()));
                             _writter.RenderBeginTag(HtmlTextWriterTag.A);
 
                             String qname;
-                            if (_qnameMapper.ReduceToQName(value.ToString(), out qname))
-                            {
-                                _writter.WriteEncodedText(qname);
-                            }
-                            else
-                            {
-                                _writter.WriteEncodedText(value.ToString());
-                            }
+                            _writter.WriteEncodedText(_qnameMapper.ReduceToQName(value.ToString(), out qname)
+                                ? qname
+                                : value.ToString());
                             _writter.RenderEndTag();
                             break;
 
@@ -223,15 +232,17 @@ namespace TriadaEndpoint.DotNetRDF.RdfHandlers
             return true;
         }
 
+        /// <summary>
+        /// Method to handle Base Uri
+        /// </summary>
+        /// <param name="baseUri">Variable</param>
+        /// <returns></returns>
         protected override bool HandleBaseUriInternal(Uri baseUri)
         {
             _baseUri = baseUri;
             return true;
         }
 
-        public override bool AcceptsAll
-        {
-            get { return true; }
-        }
+        public override bool AcceptsAll => true;
     }
 }

@@ -8,10 +8,10 @@ namespace TriadaEndpoint.DotNetRDF.Utils
     public static class W3CSpecHelper
     {
         /// <summary>
-        /// Support only DateTime, Date and Time
+        /// Format Boolean, DateTime, Date and Time by WRC spec
         /// </summary>
         /// <param name="node">Input node</param>
-        /// <returns>result node</returns>
+        /// <returns>Formated node</returns>
         public static INode FormatNode(INode node)
         {
             if (node != null &&

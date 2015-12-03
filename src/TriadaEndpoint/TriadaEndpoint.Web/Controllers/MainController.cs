@@ -1,49 +1,60 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using System.Xml;
-using log4net;
-using TriadaEndpoint.DotNetRDF;
-using TriadaEndpoint.DotNetRDF.SparqlResultHandlers;
 using TriadaEndpoint.DotNetRDF.Writters;
 using TriadaEndpoint.Web.Models;
 using TriadaEndpoint.Web.R2Rml;
+using TriadaEndpoint.Web.Rdf;
 using TriadaEndpoint.Web.TriadaDUL;
 using TriadaEndpoint.Web.Utils;
 using VDS.RDF;
-using VDS.RDF.Parsing.Handlers;
 using VDS.RDF.Query;
 using VDS.RDF.Writing;
-using VDS.RDF.Writing.Formatting;
 
 namespace TriadaEndpoint.Web.Controllers
 {
+    /// <summary>
+    /// Main controller of the application. Handle requests and return corresponding views 
+    /// </summary>
     public class MainController : Controller
     {
-        private readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
         private const string InMemory = "InMemory";
         private const string Stream = "Stream";
+        private const string JsonLd = "JsonLd";
+        private const string JsonLdContentType = "application/ld+json";
 
+        /// <summary>
+        /// Handle the request to home page
+        /// Redirect to ~/sparql
+        /// </summary>
+        /// <returns></returns>
         [HandleError]
         public ActionResult Index()
         {
-            return View();
+            return RedirectPermanent("~/sparql");
         }
 
+        /// <summary>
+        /// Handle the request to about page
+        /// </summary>
+        /// <returns></returns>
         [HandleError]
         public ActionResult About()
         {
             return View();
         }
 
+        /// <summary>
+        /// Handle the request to getting dump
+        /// </summary>
+        /// <param name="format">Output format</param>
+        /// <param name="store">Processing method InMemory/Stream</param>
+        /// <returns></returns>
         [HandleError]
         [ValidateInput(false)]
         public ActionResult GetDump(string format, string store)
@@ -52,13 +63,16 @@ namespace TriadaEndpoint.Web.Controllers
             {
                 try
                 {
+                    // Default workaround is in the memory
                     if (String.IsNullOrEmpty(store))
                         store = InMemory;
 
+                    // Dump with in memory workaround
                     if (store == InMemory)
                     {
+                        // Initialize RDF wirtter and set corresponding handler or formatter
                         ResultFormats resultFormat;
-                        string contentType = "text/html";
+                        string contentType = MimeTypeHelper.GetMimeType(ResultFormats.Html);
                         var graphStreamResultWritter = new RdfWritter(new HtmlWriter());
                         if (Enum.TryParse(format, out resultFormat))
                         {
@@ -84,27 +98,39 @@ namespace TriadaEndpoint.Web.Controllers
                                     break;
                             }
 
-                            contentType = MimeTypeHelper.GetMimeType(resultFormat);
+                            // Set outpu mime type
+                            contentType = MimeTypeHelper.GetMimeType(resultFormat); 
                         }
-                        else
+                        else if (format == JsonLd)
                         {
-                            if (format == "JsonLd")
-                            {
-                                graphStreamResultWritter = new RdfWritter(new JsonLdWriter { Context = new Uri(SparqlQueryConstants.JsonLdContractContext) });
-                                contentType = "application/ld+json";
-                            }
+                            // Set Json-Ld writter with Context
+                            graphStreamResultWritter = new RdfWritter(new JsonLdWriter { Context = new Uri(SparqlQueryConstants.JsonLdContractContext) });
+                            contentType = JsonLdContentType;
                         }
 
+                        // Write Graph to output
                         var g = new Graph();
                         var clientPipe = graphStreamResultWritter.Write(g);
 
                         return new FileStreamResult(clientPipe, contentType);
                     }
 
+                    // Dump with stream workaround
                     if (store == Stream)
                     {
                         ResultFormats resultFormat;
-                        if (format == "JsonLd")
+ 
+                        if (Enum.TryParse(format, out resultFormat))
+                        {
+                            // Execute query
+                            var sparqlActionResultWritter = new QueryProcessor();
+                            var stream = sparqlActionResultWritter.ProcessQuery(SparqlQueryConstants.ConstructAll, resultFormat);
+
+                            return new FileStreamResult(stream, MimeTypeHelper.GetMimeType(resultFormat));
+                        }
+
+                        // Not recomended, for processing JSON-LD, in memory variant is way better 
+                        if (format == JsonLd)
                         {
                             var serverPipe = new AnonymousPipeServerStream(PipeDirection.Out);
                             Task.Run(() =>
@@ -115,39 +141,41 @@ namespace TriadaEndpoint.Web.Controllers
                                     var jsonLdDumpHandler = new JsonLdHandler(sw, new Uri(SparqlQueryConstants.JsonLdContractContext), true, false);
                                     jsonLdDumpHandler.WriteStartDocument();
                                     jsonLdDumpHandler.WriteStartArray("documents");
-                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, "SELECT * WHERE { ?s a <http://tiny.cc/open-contracting#Contract> }");
-                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, "SELECT * WHERE { ?s a <http://tiny.cc/open-contracting#SelectAmendments> }");
-                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, "SELECT * WHERE { ?s a <http://tiny.cc/open-contracting#SelectAttachments> }");
+                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, SparqlQueryConstants.SelectContracts);
+                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, SparqlQueryConstants.ConstructAmendments);
+                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, SparqlQueryConstants.SelectAttachments);
                                     jsonLdDumpHandler.WriteEndArray();
                                     jsonLdDumpHandler.WriteStartArray("parties");
-                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, "SELECT * WHERE { ?s a <http://purl.org/goodrelations/v1#BusinessEntity> }");
+                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, SparqlQueryConstants.SelectParties);
                                     jsonLdDumpHandler.WriteEndArray();
                                     jsonLdDumpHandler.WriteEndDocument();
                                 }
                             });
 
                             var clientPipe = new AnonymousPipeClientStream(PipeDirection.In,
-                                     serverPipe.ClientSafePipeHandle);
+                                serverPipe.ClientSafePipeHandle);
                             return new FileStreamResult(clientPipe, "application/ld+json");
-                        }
-
-                        if (Enum.TryParse(format, out resultFormat))
-                        {
-                            var sparqlActionResultWritter = new QueryProcessor();
-                            var stream = sparqlActionResultWritter.ProcessQuery("CONSTRUCT { ?s ?p ?o } FROM <http://tiny.cc/open-contracting#> WHERE { ?s ?p ?o }", resultFormat);
-
-                            return new FileStreamResult(stream, MimeTypeHelper.GetMimeType(resultFormat));
                         }
                     }                
                 }
-                catch (Exception ex)
+                catch (AggregateException ae)
                 {
-                    return Content("Chyba: " + ex.Message);
-                }      
+                    var stringBuilder = new StringBuilder();
+                    foreach (var e in ae.InnerExceptions)
+                    {
+                        stringBuilder.AppendLine(e.Message);
+                    }
+                    throw new Exception(stringBuilder.ToString());
+                }    
             }
-            return new EmptyResult();
+            return View("~/Views/Main/Index.cshtml");
         }
 
+        /// <summary>
+        /// Handle the SPARQL query URI request
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
         [HandleError]
         [ValidateInput(false)]
         public ActionResult GetSparqlQuery(string query)
@@ -156,12 +184,15 @@ namespace TriadaEndpoint.Web.Controllers
             {
                 try
                 {
+                    // Parse Format parameter
                     var parsedQuery = query.Split('&').ToList();
                     var sparqlQuery = parsedQuery[0];
                     var format = (parsedQuery.Count > 1) ? parsedQuery[1].Split('=')[1] : "Html";
 
+                    // Get result format
                     var resultFormat = (ResultFormats) Enum.Parse(typeof (ResultFormats), format);
                     
+                    // Execute query
                     var sparqlActionResultWritter = new QueryProcessor();
                     var stream = sparqlActionResultWritter.ProcessQuery(sparqlQuery, resultFormat);
 
@@ -174,16 +205,18 @@ namespace TriadaEndpoint.Web.Controllers
                     {
                         stringBuilder.AppendLine(e.Message);
                     }
-                    return Content("Chyba: " + stringBuilder);
-                }
-                catch (Exception ex)
-                {
-                    return Content("Chyba: " + ex.Message);
+                    throw new Exception(stringBuilder.ToString());
                 }
             }
-            return new EmptyResult();
+            return View("~/Views/Main/Index.cshtml");
         }
 
+        /// <summary>
+        /// Handle the SPARQL query POST request 
+        /// Redirect to URI request
+        /// </summary>
+        /// <param name="queryViewModel"></param>
+        /// <returns></returns>
         [HandleError]
         [ValidateInput(false)]
         public ActionResult PostSparqlQuery(QueryViewModel queryViewModel)
@@ -196,6 +229,15 @@ namespace TriadaEndpoint.Web.Controllers
             return RedirectPermanent("~/sparql?query=" + queryString + Url.Encode("&Format=" + queryViewModel.ResultFormat));
         }
 
+        /// <summary>
+        /// Handle the URI request Contract and corresponding entities
+        /// Dereference to SPARQL query URI request
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="verze"></param>
+        /// <param name="parameter"></param>
+        /// <param name="parameterId"></param>
+        /// <returns></returns>
         [HandleError]
         [Route("~/contract/{id?}/{verze?}/{parameter?}/{parameterId?}")]
         public ActionResult GetContract(string id, string verze, string parameter, string parameterId)
@@ -206,24 +248,24 @@ namespace TriadaEndpoint.Web.Controllers
                 string baseUrl = Request.Url.GetLeftPart(UriPartial.Authority);
 
                 if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) &&
-                    !String.IsNullOrEmpty(parameter) && !String.IsNullOrEmpty(parameterId))
+                    !String.IsNullOrEmpty(parameter) && !String.IsNullOrEmpty(parameterId)) // Get Milestone
                 {
                     queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/contract/{1}/{2}/{3}/{4}", baseUrl, id, verze, parameter, parameterId)));
                 }
                 else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
-                    parameter.Equals("publisher"))
+                    parameter.Equals("publisher")) // Get Publisher
                 {
                     queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/publisher", baseUrl)));
                 }
                 else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
-                    (parameter.Equals("version") || parameter.Equals("implementation") || parameter.Equals("amount")))
+                    (parameter.Equals("version") || parameter.Equals("implementation") || parameter.Equals("amount"))) // Get Version / Implementation / Amount
                 {
                     queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/contract/{1}/{2}/{3}", baseUrl, id, verze, parameter)));
                 }
-                else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze))
+                else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze)) // Get Contract
                 {
                     queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/contract/{1}/{2}", baseUrl, id, verze)));
@@ -237,6 +279,14 @@ namespace TriadaEndpoint.Web.Controllers
             return RedirectPermanent("~/sparql?query=" + queryString);
         }
 
+        /// <summary>
+        /// Handle the URI request to Amendment and corresponding entities
+        /// Dereference to SPARQL query URI request
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="verze"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         [HandleError]
         [Route("~/amendment/{id?}/{verze?}/{parameter?}")]
         public ActionResult GetAmendment(string id, string verze, string parameter)
@@ -244,21 +294,22 @@ namespace TriadaEndpoint.Web.Controllers
             var queryString = new SparqlParameterizedString();
             if (Request.Url != null)
             {
+                // Assemble SPARQL query with corresponding parameter 
                 string baseUrl = Request.Url.GetLeftPart(UriPartial.Authority);
-
+     
                 if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
-                    (parameter.Equals("version")))
+                    (parameter.Equals("version"))) // Get Version
                 {
                     queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/amendment/{1}/{2}/{3}", baseUrl, id, verze, parameter)));
                 }
                 else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
-                     parameter.Equals("publisher"))
+                     parameter.Equals("publisher")) // Get Publisher
                 {
                     queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
-                    queryString.SetUri("subject", new Uri(String.Format("{0}/publisher", baseUrl)));
+                    queryString.SetUri("subject", new Uri(String.Format("{0}/publisher", baseUrl))); 
                 }
-                else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze))
+                else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze)) // Get Amendment
                 {
                     queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/amendment/{1}/{2}", baseUrl, id, verze)));
@@ -272,6 +323,14 @@ namespace TriadaEndpoint.Web.Controllers
             return RedirectPermanent("~/sparql?query=" + queryString);
         }
 
+        /// <summary>
+        /// Handle the URI request to Attachment and corresponding entities
+        /// Dereference to SPARQL query URI request
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="verze"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         [HandleError]
         [Route("~/attachment/{id?}/{verze?}/{parameter?}")]
         public ActionResult GetAttachment(string id, string verze, string parameter)
@@ -279,21 +338,22 @@ namespace TriadaEndpoint.Web.Controllers
             var queryString = new SparqlParameterizedString();
             if (Request.Url != null)
             {
+                // Assemble SPARQL query with corresponding parameter 
                 string baseUrl = Request.Url.GetLeftPart(UriPartial.Authority);
 
                 if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
-                    (parameter.Equals("version")))
+                    (parameter.Equals("version"))) // Get Version
                 {
                     queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/attachment/{1}/{2}/{3}", baseUrl, id, verze, parameter)));
                 }
                 else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze) && !String.IsNullOrEmpty(parameter) &&
-                         parameter.Equals("publisher"))
+                         parameter.Equals("publisher")) // Get Publisher
                 {
                     queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/publisher", baseUrl)));
                 }
-                else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze))
+                else if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(verze)) // Get Attachment
                 {
                     queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
                     queryString.SetUri("subject", new Uri(String.Format("{0}/attachment/{1}/{2}", baseUrl, id, verze)));
@@ -307,6 +367,13 @@ namespace TriadaEndpoint.Web.Controllers
             return RedirectPermanent("~/sparql?query=" + queryString);
         }
 
+        /// <summary>
+        /// Handle the URI request to Party and corresponding entities
+        /// Dereference to SPARQL query URI request 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         [HandleError]
         [Route("~/party/{id?}/{parameter?}")]
         public ActionResult GetParty(string id, string parameter)
@@ -314,14 +381,16 @@ namespace TriadaEndpoint.Web.Controllers
             var queryString = new SparqlParameterizedString();
             if (Request.Url != null)
             {
+                // Assemble SPARQL query with corresponding parameter 
                 string baseUrl = Request.Url.GetLeftPart(UriPartial.Authority);
                 queryString.CommandText = SparqlQueryConstants.ConstructBySubject;
 
-                if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(parameter) && parameter.Equals("address"))
+                // Get Address
+                if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(parameter) && parameter.Equals("address")) 
                 {
                     queryString.SetUri("subject", new Uri(String.Format("{0}/party/{1}/address", baseUrl, id)));
                 }
-                else if (!String.IsNullOrEmpty(id))
+                else if (!String.IsNullOrEmpty(id)) // Get Party
                 {
                     queryString.SetUri("subject", new Uri(String.Format("{0}/party/{1}", baseUrl, id)));
                 }
@@ -334,6 +403,12 @@ namespace TriadaEndpoint.Web.Controllers
             return RedirectPermanent("~/sparql?query=" + queryString);
         }
 
+        /// <summary>
+        /// Handle the URI request to File source
+        /// </summary>
+        /// <param name="fileGuid"></param>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
         [HandleError]
         [Route("~/file/{fileGuid?}/{fileName?}")]
         public ActionResult GetFileSource(string fileGuid, string fileName)
@@ -341,32 +416,32 @@ namespace TriadaEndpoint.Web.Controllers
             var queryString = new SparqlParameterizedString();
             if (!String.IsNullOrEmpty(fileGuid) && !String.IsNullOrEmpty(fileName))
             {
-                try
-                {
-                    var file = DULWrapper.GetFile(Guid.Parse(fileGuid));
-                    var mimetype = MimeMapping.GetMimeMapping(fileName);
+                // Get File source from Triada Data Store
+                var file = DULWrapper.GetFile(Guid.Parse(fileGuid));
+                var mimetype = MimeMapping.GetMimeMapping(fileName);
 
-                    if (file != null)
-                    {
-                        var fileBytes = file.ToArray();
-                        return File(fileBytes, mimetype, fileName);
-                    }
-                    return new EmptyResult();
-                }
-                catch (Exception ex)
+                if (file != null)
                 {
-                    return Content("Chyba: " + ex.Message);
-                }               
+                    var fileBytes = file.ToArray();
+                    return File(fileBytes, mimetype, fileName);
+                }
+                return new EmptyResult();
             }
             queryString.CommandText = Url.Encode(SparqlQueryConstants.SelectFiles);
 
             return RedirectPermanent("~/sparql?query=" + queryString);
         }
 
+        /// <summary>
+        /// Handle the URI request to Publisher
+        /// Dereference to SPARQL query URI request
+        /// </summary>
+        /// <returns></returns>
         [HandleError]
         [Route("~/publisher")]
         public ActionResult GetPublisher()
         {
+            // Assemble SPARQL query with corresponding parameter 
             var queryString = new SparqlParameterizedString();
             if (Request.Url != null)
             {

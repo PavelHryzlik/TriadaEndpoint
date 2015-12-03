@@ -7,6 +7,9 @@ using VDS.RDF.Writing.Formatting;
 
 namespace TriadaEndpoint.DotNetRDF.Formatters
 {
+    /// <summary>
+    /// Base formatter to parse Triples to NTriples
+    /// </summary>
     public class BaseNTripleFormatter : BaseFormatter
     {
         private readonly BlankNodeOutputMapper _bnodeMapper = new BlankNodeOutputMapper(WriterHelper.IsValidBlankNodeID);
@@ -29,7 +32,7 @@ namespace TriadaEndpoint.DotNetRDF.Formatters
         /// </summary>
         /// <param name="u">URI Node</param>
         /// <param name="segment">Triple Segment</param>
-        /// <returns></returns>
+        /// <returns>Formatted Uri node</returns>
         protected override string FormatUriNode(IUriNode u, TripleSegment? segment)
         {
             var output = new StringBuilder();
@@ -44,7 +47,7 @@ namespace TriadaEndpoint.DotNetRDF.Formatters
         /// </summary>
         /// <param name="l">Literal Node</param>
         /// <param name="segment">Triple Segment</param>
-        /// <returns></returns>
+        /// <returns>Formatted Literal</returns>
         protected override string FormatLiteralNode(ILiteralNode l, TripleSegment? segment)
         {
             var output = new StringBuilder();
@@ -73,7 +76,7 @@ namespace TriadaEndpoint.DotNetRDF.Formatters
         /// </summary>
         /// <param name="b">Blank Node</param>
         /// <param name="segment">Triple Segment</param>
-        /// <returns></returns>
+        /// <returns>Formatted Blank node</returns>
         protected override string FormatBlankNode(IBlankNode b, TripleSegment? segment)
         {
             return "_:" + _bnodeMapper.GetOutputID(b.InternalID);

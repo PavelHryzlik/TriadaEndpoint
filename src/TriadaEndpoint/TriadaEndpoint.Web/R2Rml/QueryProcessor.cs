@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Reflection;
@@ -12,36 +13,52 @@ using TriadaEndpoint.Web.Models;
 using VDS.RDF;
 using VDS.RDF.Parsing.Handlers;
 using VDS.RDF.Writing.Formatting;
+using TriadaEndpoint.Web.Utils;
 
 namespace TriadaEndpoint.Web.R2Rml
 {
     /// <summary>
-    /// Class for saving Sparql Result Sets to FileContentResult
+    /// Class processing SPARQL queries
     /// </summary>
     public class QueryProcessor
     {
         private readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Procces SPARQL query asynchronously
+        /// </summary>
+        /// <param name="sparqlQuery">SPARQL query</param>
+        /// <param name="resultFormats">Output format</param>
+        /// <returns></returns>
         public Stream ProcessQuery(string sparqlQuery, ResultFormats resultFormats)
         {
             var stopWatch = Stopwatch.StartNew();
 
+            // Asynchronously execute query, threads connected with pipes - need revision
             var serverPipe = new AnonymousPipeServerStream(PipeDirection.Out);
-            Task.Factory.StartNew(() => Query(serverPipe, sparqlQuery, resultFormats));
-
+            Task.Factory.StartNew(() => Query(serverPipe, sparqlQuery, resultFormats)).OnException(ex => _log.Error(ExceptionHelper.ParseMultiException((AggregateException)ex)));
             var clientPipe = new AnonymousPipeClientStream(PipeDirection.In, serverPipe.ClientSafePipeHandle);
-            
+
             stopWatch.Stop();
             _log.Info("SparqlResult in " + stopWatch.ElapsedMilliseconds + "ms");
 
             return clientPipe;
         }
 
+        /// <summary>
+        /// Execute SPARQL query and write result to stream
+        /// SELECT queries generates SparqlResult and needs ISparqlResultsHandler
+        /// CONSTRUCT ueries generates Triples and needs IRdfHandler
+        /// </summary>
+        /// <param name="stream">Input stream</param>
+        /// <param name="sparqlQuery">SPARQL query</param>
+        /// <param name="resultFormats">Output format</param>
         private void Query(Stream stream, string sparqlQuery, ResultFormats resultFormats)
         {
             using (stream)
             using (var sw = new StreamWriter(stream, Encoding.UTF8, 4096))
             {
+                // Set corresponding handler or formatter
                 ISparqlResultsHandler sparqlResultsHandler;
                 IRdfHandler rdfResultHandler;
                 switch (resultFormats)
@@ -76,6 +93,7 @@ namespace TriadaEndpoint.Web.R2Rml
                         break;
                 }
 
+                // Execute query with R2RML processor
                 R2RmlStorageWrapper.Storage.Query(rdfResultHandler, sparqlResultsHandler, sparqlQuery);
             }
         }

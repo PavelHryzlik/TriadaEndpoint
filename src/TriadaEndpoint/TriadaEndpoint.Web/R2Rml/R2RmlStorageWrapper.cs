@@ -29,17 +29,20 @@ namespace TriadaEndpoint.Web.R2Rml
 
             try
             {
+                // Get configuration form web.config
                 var mappingPath = System.Configuration.ConfigurationManager.AppSettings["r2rmlInputScript"];
                 var connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["r2rmlstoreconnection"].ConnectionString;
 
                 var path = System.Web.Hosting.HostingEnvironment.MapPath(mappingPath);
 
+                // Load R2RML script
                 IR2RML mapping;
                 using (var fs = new FileStream(path, FileMode.Open))
                 {
                     mapping = R2RMLLoader.Load(fs);
                 }
 
+                // Generate mapping
                 _storage = new R2RMLStorage((new DefaultSqlDbFactory()).CreateSQLDb(connectionString), mapping, new DefaultR2RMLStorageFactory());
             }
             catch (Exception e)

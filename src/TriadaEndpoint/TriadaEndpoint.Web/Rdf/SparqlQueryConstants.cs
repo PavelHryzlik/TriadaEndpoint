@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
-namespace TriadaEndpoint.Web.R2Rml
+﻿namespace TriadaEndpoint.Web.Rdf
 {
     public static class SparqlQueryConstants
     {
@@ -22,10 +17,11 @@ namespace TriadaEndpoint.Web.R2Rml
         public const string SelectBySubject = "SELECT * WHERE { @subject ?p ?o }";
 
         //Constructs
-        public const string ConstructContracts = BasePrefix + "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o ; a :Contract .}";
+        public const string ConstructContracts = BasePrefix + "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o ; a :Contract }";
         public const string ConstructAmendments = BasePrefix + "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o ; a :Amendment }";
         public const string ConstructAttachments = BasePrefix + "CONSTRUCT { ?s ?p ?o } WHERE {?s ?p ?o ; a :Attachment }";
         public const string ConstructParties = BasePrefix + "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o ; a :party }";
         public const string ConstructBySubject = "CONSTRUCT { @subject ?p ?o } WHERE { @subject ?p ?o }";
+        public const string ConstructAll = "CONSTRUCT { ?s ?p ?o } WHERE {?s ?p ?o }";
     }
 }

@@ -6,14 +6,17 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TriadaEndpoint.DotNetRDF.Formatters;
 using TriadaEndpoint.DotNetRDF.Utils;
-using TriadaEndpoint.Web.Models;
+using TriadaEndpoint.Web.R2Rml;
 using VDS.RDF;
 using VDS.RDF.Parsing.Handlers;
 using VDS.RDF.Query;
 
-namespace TriadaEndpoint.Web.R2Rml
+namespace TriadaEndpoint.Web.Rdf
 {
-    // TODO - Rewrite! 
+    /// <summary>
+    /// Obsolete, check JsonLdWriter in TriadaEndpoint.DotNetRdf project
+    /// </summary>
+    [Obsolete]
     public class JsonLdHandler : BaseResultsHandler
     {
         private readonly JsonTextWriter _writter;
@@ -131,6 +134,11 @@ namespace TriadaEndpoint.Web.R2Rml
                                 }
                                 implementation["milestones"] = milestones;
                             }
+                        }
+
+                        if (document["amount"] != null)
+                        {
+                            document["amount"] = jsonLdCompacted["@graph"].Children().FirstOrDefault(n => n["@id"].ToString() == document["amount"]["@id"].ToString());
                         }
 
                         if (document["versions"] != null)

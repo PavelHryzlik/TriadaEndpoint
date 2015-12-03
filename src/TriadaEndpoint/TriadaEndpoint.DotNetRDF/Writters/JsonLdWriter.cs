@@ -10,6 +10,10 @@ using VDS.RDF.Writing;
 
 namespace TriadaEndpoint.DotNetRDF.Writters
 {
+    /// <summary>
+    /// Class parsing RDF data to Json-LD reprezentation, according to contract data standard
+    /// http://standard.zindex.cz/doku.php/cs/standard/publication
+    /// </summary>
     public class JsonLdWriter : IRdfWriter, IPrettyPrintingWriter
     {
         private bool _prettyprint = true;
@@ -83,78 +87,91 @@ namespace TriadaEndpoint.DotNetRDF.Writters
             if (_context == null)
                 RaiseWarning("Warning: Json-LD context is null.");
 
+            // Extract RDF data as NTriples
             var strBuilder = new StringBuilder();
             g.Triples.ForEach(triple => strBuilder.AppendLine(triple.ToString(new BaseNTripleFormatter())));
       
+            // Load NTriples to Json-LD
             var jsonLd = JsonLD.Core.JsonLdProcessor.FromRDF(strBuilder.ToString());
 
+            // Load Json-LD context and compact with Json-LD data
             var jsonLdCompacted = _context != null 
                 ? JsonLD.Core.JsonLdProcessor.Compact(jsonLd, JsonLD.Util.JSONUtils.FromURL(_context), new JsonLD.Core.JsonLdOptions())
                 : jsonLd;
 
-            var documents = Enumerable.Where<JToken>(jsonLdCompacted["@graph"].Children(), n => n["@type"].ToString() == "Contract" || n["@type"].ToString() == "Attachment" || n["@type"].ToString() == "Amendment").ToList();
+            // Specific formatting for data (due to Contract data standard)
+            // Get all documents
+            var documents = jsonLdCompacted["@graph"].Children().Where(n => n["@type"].ToString() == "Contract" || n["@type"].ToString() == "Attachment" || n["@type"].ToString() == "Amendment").ToList();
             foreach (var dokumentToken in documents)
             {
-                var document = (Newtonsoft.Json.Linq.JObject)dokumentToken;
+                var document = (JObject)dokumentToken;
 
+                // Get publisher block and set it under corresponding document block
                 if (document["publisher"] != null)
                 {
-                    document["publisher"] = Enumerable.FirstOrDefault<JToken>(jsonLdCompacted["@graph"].Children(), n => n["@type"].ToString() == "Publisher");
+                    document["publisher"] = jsonLdCompacted["@graph"].Children().FirstOrDefault(n => n["@type"].ToString() == "Publisher");
                 }
 
+                // Get implementation block and set it under corresponding document block
                 if (document["implementation"] != null)
                 {
-                    document["implementation"] = Enumerable.FirstOrDefault<JToken>(jsonLdCompacted["@graph"].Children(), n => n["@id"].ToString() == document["implementation"]["@id"].ToString());
+                    document["implementation"] = jsonLdCompacted["@graph"].Children().FirstOrDefault(n => n["@id"].ToString() == document["implementation"]["@id"].ToString());
 
+                    // Get milestones blocks and set it under corresponding implementation block
                     var implementation = document["implementation"];
-                    if (implementation != null && implementation["milestones"] != null)
+                    if (implementation?["milestones"] != null)
                     {
-                        var milestones = new Newtonsoft.Json.Linq.JArray();
+                        var milestones = new JArray();
                         foreach (var milestoneToken in implementation["milestones"])
                         {
-                            var milestone = Enumerable.FirstOrDefault<JToken>(jsonLdCompacted["@graph"].Children(), n => n["@id"].ToString() == ((Newtonsoft.Json.Linq.JValue)milestoneToken).Value.ToString());
+                            var milestone = jsonLdCompacted["@graph"].Children().FirstOrDefault(n => n["@id"].ToString() == ((JValue)milestoneToken).Value.ToString());
                             milestones.Add(milestone);
                         }
                         implementation["milestones"] = milestones;
                     }
                 }
 
+                // Get amount block and set it under corresponding document block
                 if (document["amount"] != null)
                 {
-                    document["amount"] = Enumerable.FirstOrDefault<JToken>(jsonLdCompacted["@graph"].Children(), n => n["@id"].ToString() == document["amount"]["@id"].ToString());
+                    document["amount"] = jsonLdCompacted["@graph"].Children().FirstOrDefault(n => n["@id"].ToString() == document["amount"]["@id"].ToString());
                 }
 
+                // Get versions blocks and set it under corresponding document block
                 if (document["versions"] != null)
                 {
-                    var versions = new Newtonsoft.Json.Linq.JArray();
+                    var versions = new JArray();
                     foreach (var versionToken in document["versions"])
                     {
-                        var version = Enumerable.FirstOrDefault<JToken>(jsonLdCompacted["@graph"].Children(), n => n["@id"].ToString() == ((Newtonsoft.Json.Linq.JObject)versionToken)["@id"].ToString());
+                        var version = jsonLdCompacted["@graph"].Children().FirstOrDefault(n => n["@id"].ToString() == ((JObject)versionToken)["@id"].ToString());
                         versions.Add(version);
                     }
                     document["versions"] = versions;
                 }
             }
 
-            var parties = Enumerable.Where<JToken>(jsonLdCompacted["@graph"].Children(), n => n["@type"].ToString() == "Party").ToList();
+            // Get all parties
+            var parties = jsonLdCompacted["@graph"].Children().Where(n => n["@type"].ToString() == "Party").ToList();
             foreach (var partyToken in parties)
             {
-                var party = (Newtonsoft.Json.Linq.JObject)partyToken;
+                // Get address block and set it under corresponding party block
+                var party = (JObject)partyToken;
                 if (party["address"] != null)
                 {
-                    party["address"] = Enumerable.FirstOrDefault<JToken>(jsonLdCompacted["@graph"].Children(), n => n["@id"].ToString() == party["address"]["@id"].ToString());
+                    party["address"] = jsonLdCompacted["@graph"].Children().FirstOrDefault(n => n["@id"].ToString() == party["address"]["@id"].ToString());
                 }
             }
 
+            // Define base document structure
             var id = "contracts_release_" + DateTime.Now.Date.ToString("yyyyMMdd");
-            var resultJsonLd = new Newtonsoft.Json.Linq.JObject
+            var resultJsonLd = new JObject
             {
                 { "@context" , _context },
                 { "id" , id },
                 { "published" , DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffffffzzz") },
                 { "language" , "cs" },
-                { "documents" , new Newtonsoft.Json.Linq.JArray { documents } },
-                { "parties" , new Newtonsoft.Json.Linq.JArray { parties } }
+                { "documents" , new JArray { documents } },
+                { "parties" , new JArray { parties } }
             };
 
             //Get the Writer and Configure Options
@@ -168,10 +185,7 @@ namespace TriadaEndpoint.DotNetRDF.Writters
 
         private void RaiseWarning(String message)
         {
-            if (Warning != null)
-            {
-                Warning(message);
-            }
+            Warning?.Invoke(message);
         }
 
         /// <summary>

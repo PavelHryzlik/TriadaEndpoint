@@ -168,21 +168,23 @@
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
-    <Compile Include="Controllers\DownloadResult.cs" />
+    <Compile Include="Rdf\JsonLdHandler.cs" />
+    <Compile Include="Rdf\RdfWritter.cs" />
+    <Compile Include="Rdf\SparqlQueryConstants.cs" />
+    <Compile Include="Utils\DownloadResult.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\QueryViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="R2Rml\RdfWritter.cs" />
-    <Compile Include="R2Rml\JsonLdHandler.cs" />
     <Compile Include="R2Rml\R2RmlStorageWrapper.cs" />
     <Compile Include="R2Rml\QueryProcessor.cs" />
-    <Compile Include="R2Rml\SparqlQueryConstants.cs" />
     <Compile Include="TriadaDUL\DULConfig.cs" />
     <Compile Include="TriadaDUL\DULWrapper.cs" />
+    <Compile Include="Utils\ExceptionHelper.cs" />
     <Compile Include="Utils\MimeTypeHelper.cs" />
+    <Compile Include="Utils\TaskExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\web.config" />

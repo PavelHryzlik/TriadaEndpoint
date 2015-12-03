@@ -2,8 +2,12 @@
 
 namespace TriadaEndpoint.Web.TriadaDUL
 {
+    /// <summary>
+    /// Class of settting for Triada Data storage, parsing values from web.config
+    /// </summary>
     public class DULConfig : ConfigurationSection
     {
+        // Get DULConfig section from web.config
         private static readonly DULConfig ConfigSection = ConfigurationManager.GetSection("DULConfig") as DULConfig;
 
         public static DULConfig Settings
@@ -14,6 +18,9 @@ namespace TriadaEndpoint.Web.TriadaDUL
             }
         }
 
+        /// <summary>
+        /// Url of the Triada Data storage
+        /// </summary>
         [ConfigurationProperty("Url", IsRequired = true)]
         public string Url
         {
@@ -21,6 +28,7 @@ namespace TriadaEndpoint.Web.TriadaDUL
             set { this["Url"] = value; }
         }
 
+        // Logging method to Triada Data storage
         [ConfigurationProperty("LogOnModul", IsRequired = true)]
         public string LogOnModul
         {
@@ -28,6 +36,7 @@ namespace TriadaEndpoint.Web.TriadaDUL
             set { this["LogOnModul"] = value;}
         }
 
+        // Logging subject
         [ConfigurationProperty("Subject", IsRequired = true)]
         public string Subject
         {
@@ -35,6 +44,7 @@ namespace TriadaEndpoint.Web.TriadaDUL
             set { this["Subject"] = value; }
         }
 
+        // Login to Triada Data storage
         [ConfigurationProperty("Login", IsRequired = true)]
         public string Login
         {
@@ -42,6 +52,7 @@ namespace TriadaEndpoint.Web.TriadaDUL
             set { this["Login"] = value; }
         }
 
+        // Password to Triada Data storage
         [ConfigurationProperty("Password", IsRequired = true)]
         public string Password
         {
@@ -49,6 +60,7 @@ namespace TriadaEndpoint.Web.TriadaDUL
             set { this["Password"] = value; }
         }
 
+        // Vesrion of the Triada Data storage
         [ConfigurationProperty("Version", IsRequired = true)]
         public string Version
         {
@@ -56,6 +68,7 @@ namespace TriadaEndpoint.Web.TriadaDUL
             set { this["Version"] = value; }
         }
 
+        // GUID identificator for log
         [ConfigurationProperty("Identificator", IsRequired = true)]
         public string Identificator
         {
@@ -63,6 +76,7 @@ namespace TriadaEndpoint.Web.TriadaDUL
             set { this["Identificator"] = value; }
         }
 
+        // User name for metadata
         [ConfigurationProperty("UserNameForFileMeta", IsRequired = true)]
         public string UserNameForFileMeta
         {
