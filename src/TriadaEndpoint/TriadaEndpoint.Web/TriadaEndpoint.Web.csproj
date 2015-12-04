@@ -95,7 +95,7 @@
     </Reference>
     <Reference Include="TriadaModulZaklad, Version=3.24.2.3, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\TriadaModulZaklad.dll</HintPath>
+      <HintPath>..\packages\triada\TriadaModulZaklad.dll</HintPath>
     </Reference>
     <Reference Include="VDS.Common, Version=1.4.0.0, Culture=neutral, PublicKeyToken=ab5f4eb908061bf0, processorArchitecture=MSIL">
       <HintPath>..\packages\VDS.Common.1.4.0\lib\net40-client\VDS.Common.dll</HintPath>
