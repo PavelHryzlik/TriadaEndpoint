@@ -32,24 +32,39 @@
     </div>
     <div class="container body-content">
         @RenderBody()
-        <hr />
         <footer>
+
             <div class="row">
-                <div class="col-md-2">
+                <div class="col-md-4">
                     <p>&copy; @DateTime.Now.Year - Pavel Hryzlík </p>
                 </div>
-                <div class="col-md-5 col-md-offset-5" style="float:right">
+                <div class="col-md-8">
+                    <p class="small" style="text-align: right">
+                        Dump:
+                        <a href="~/dump?Format=Html">Html</a>,
+                        <a href="~/dump?Format=Turtle">Turtle</a>,
+                        <a href="~/dump?Format=Json">JSON</a>,
+                        <a href="~/dump?Format=NTripples">NTripples</a>,
+                        <a href="~/dump?Format=Xml">XML</a>,
+                        <a href="~/dump?Format=RdfXml">RDF/XML</a>,
+                        <a href="~/dump?Format=Csv">CSV</a>,
+                        <a href="~/dump?Format=JsonLd">JSON-LD</a>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12" style="float: right; text-align: right">
                     <a href="http://opendata.cz/">
-                        <img alt="" class="img-thumbnail" style="height: 50px" src="@Url.Content("~/Content/images/opendata_cz.png")" />
+                        <img alt="" class="img-thumbnail" style="height: 50px" src="@Url.Content("~/Content/images/opendata_cz.png")"/>
                     </a>
                     <a href="http://www.w3.org/TR/REC-rdf-syntax/">
                         <img alt="" class="img-thumbnail" style="height: 50px" src="@Url.Content("~/Content/images/rdf_w3c_icon.png")"/>
                     </a>
                     <a href="http://json-ld.org/">
-                        <img alt="" class="img-thumbnail" style="height: 50px" src="@Url.Content("~/Content/images/json-ld-logo.png")" />
+                        <img alt="" class="img-thumbnail" style="height: 50px" src="@Url.Content("~/Content/images/json-ld-logo.png")"/>
                     </a>
                     <a href="http://www.mff.cuni.cz/">
-                        <img alt="" class="img-thumbnail" style="height:50px" src="@Url.Content("~/Content/images/mff.png")" />
+                        <img alt="" class="img-thumbnail" style="height: 50px" src="@Url.Content("~/Content/images/mff.png")"/>
                     </a>
                 </div>
             </div>

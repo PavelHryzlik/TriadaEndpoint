@@ -12,7 +12,7 @@ namespace TriadaEndpoint.DotNetRDF.SparqlResultHandlers
     /// <summary>
     /// Handler formatting SparqlResults to Rdf/Xml representation
     /// </summary>
-    public class RdfXmlResultHandler: BaseResultsHandler
+    public class RdfXmlResultHandler : BaseResultsHandler
     {
         private readonly XmlWriter _writter;
         private readonly bool _closeOutput;

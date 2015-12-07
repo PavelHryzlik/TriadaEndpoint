@@ -6,7 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using TriadaEndpoint.DotNetRDF.BaseHandlers;
 using TriadaEndpoint.DotNetRDF.Writters;
+using TriadaEndpoint.Web.ActionResults;
 using TriadaEndpoint.Web.Models;
 using TriadaEndpoint.Web.R2Rml;
 using TriadaEndpoint.Web.Rdf;
@@ -123,38 +125,11 @@ namespace TriadaEndpoint.Web.Controllers
                         if (Enum.TryParse(format, out resultFormat))
                         {
                             // Execute query
-                            var sparqlActionResultWritter = new QueryProcessor();
-                            var stream = sparqlActionResultWritter.ProcessQuery(SparqlQueryConstants.ConstructAll, resultFormat);
+                            var sparqlActionResult = new QueryProcessor();
+                            var handler = sparqlActionResult.GetHandler(SparqlQueryConstants.ConstructAll, resultFormat);
+                            sparqlActionResult.ProcessQuery(SparqlQueryConstants.ConstructAll, handler);
 
-                            return new FileStreamResult(stream, MimeTypeHelper.GetMimeType(resultFormat));
-                        }
-
-                        // Not recomended, for processing JSON-LD, in memory variant is way better 
-                        if (format == JsonLd)
-                        {
-                            var serverPipe = new AnonymousPipeServerStream(PipeDirection.Out);
-                            Task.Run(() =>
-                            {
-                                using (serverPipe)
-                                using (var sw = new StreamWriter(serverPipe, Encoding.UTF8, 4096))
-                                {
-                                    var jsonLdDumpHandler = new JsonLdHandler(sw, new Uri(SparqlQueryConstants.JsonLdContractContext), true, false);
-                                    jsonLdDumpHandler.WriteStartDocument();
-                                    jsonLdDumpHandler.WriteStartArray("documents");
-                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, SparqlQueryConstants.SelectContracts);
-                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, SparqlQueryConstants.ConstructAmendments);
-                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, SparqlQueryConstants.SelectAttachments);
-                                    jsonLdDumpHandler.WriteEndArray();
-                                    jsonLdDumpHandler.WriteStartArray("parties");
-                                    R2RmlStorageWrapper.Storage.Query(null, jsonLdDumpHandler, SparqlQueryConstants.SelectParties);
-                                    jsonLdDumpHandler.WriteEndArray();
-                                    jsonLdDumpHandler.WriteEndDocument();
-                                }
-                            });
-
-                            var clientPipe = new AnonymousPipeClientStream(PipeDirection.In,
-                                serverPipe.ClientSafePipeHandle);
-                            return new FileStreamResult(clientPipe, "application/ld+json");
+                            return new ChunkActionResult<IChunkHandler>(handler, MimeTypeHelper.GetMimeType(resultFormat));
                         }
                     }                
                 }
@@ -191,12 +166,13 @@ namespace TriadaEndpoint.Web.Controllers
 
                     // Get result format
                     var resultFormat = (ResultFormats) Enum.Parse(typeof (ResultFormats), format);
-                    
-                    // Execute query
-                    var sparqlActionResultWritter = new QueryProcessor();
-                    var stream = sparqlActionResultWritter.ProcessQuery(sparqlQuery, resultFormat);
 
-                    return new FileStreamResult(stream, MimeTypeHelper.GetMimeType(resultFormat));
+                    // Execute query
+                    var sparqlActionResult = new QueryProcessor();
+                    var handler = sparqlActionResult.GetHandler(sparqlQuery, resultFormat);
+                    sparqlActionResult.ProcessQuery(sparqlQuery, handler);
+
+                    return new ChunkActionResult<IChunkHandler>(handler, MimeTypeHelper.GetMimeType(resultFormat));
                 }
                 catch (AggregateException ae)
                 {

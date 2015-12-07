@@ -166,12 +166,12 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActionResults\ChunkActionResult.cs" />
+    <Compile Include="ActionResults\DownloadResult.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
-    <Compile Include="Rdf\JsonLdHandler.cs" />
     <Compile Include="Rdf\RdfWritter.cs" />
     <Compile Include="Rdf\SparqlQueryConstants.cs" />
-    <Compile Include="Utils\DownloadResult.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

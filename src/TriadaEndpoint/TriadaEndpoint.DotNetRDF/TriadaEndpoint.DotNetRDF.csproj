@@ -62,12 +62,25 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseHandlers\IChunkHandler.cs" />
     <Compile Include="Formatters\BaseCsvFormatter.cs" />
     <Compile Include="Formatters\BaseNTripleFormatter.cs" />
+    <Compile Include="LazyRdfHandlers\HtmlLazyRdfHandler.cs" />
+    <Compile Include="LazyRdfHandlers\JsonLazyRdfHandler.cs" />
+    <Compile Include="LazyRdfHandlers\LazyRdfHandler.cs" />
+    <Compile Include="LazyRdfHandlers\ThroughLazyRdfHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RdfHandlers\HtmlRdfHandler.cs" />
     <Compile Include="RdfHandlers\JsonRdfHandler.cs" />
     <Compile Include="RdfHandlers\NTriplesRdfHandler.cs" />
+    <Compile Include="SparqlLazyResultHandlers\CsvLazyResultHandler.cs" />
+    <Compile Include="SparqlLazyResultHandlers\HtmlLazyResultHandler.cs" />
+    <Compile Include="SparqlLazyResultHandlers\JsonLazyResultHandler.cs" />
+    <Compile Include="SparqlLazyResultHandlers\LazyResultHandler.cs" />
+    <Compile Include="SparqlLazyResultHandlers\NTriplesLazyResultHandler.cs" />
+    <Compile Include="SparqlLazyResultHandlers\RdfXmlLazyResultHandler.cs" />
+    <Compile Include="SparqlLazyResultHandlers\TurtleLazyResultHandler.cs" />
+    <Compile Include="SparqlLazyResultHandlers\XmlLazyResultHandler.cs" />
     <Compile Include="SparqlResultHandlers\CsvResultHandler.cs" />
     <Compile Include="SparqlResultHandlers\HtmlResultHandler.cs" />
     <Compile Include="SparqlResultHandlers\JsonResulHandler.cs" />

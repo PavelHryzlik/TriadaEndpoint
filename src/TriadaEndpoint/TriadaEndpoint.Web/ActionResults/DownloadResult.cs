@@ -2,7 +2,7 @@
 using System.Web;
 using System.Web.Mvc;
 
-namespace TriadaEndpoint.Web.Utils
+namespace TriadaEndpoint.Web.ActionResults
 {
     /// <summary>
     /// Extension of FileStreamResult for download availability
