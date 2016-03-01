@@ -28,7 +28,7 @@ namespace TriadaEndpoint.Web
                 new { controller = "Main", action = "GetSparqlQuery" }
             );
 
-            // Default route
+            // Default routes
             routes.MapRoute(
                 "Default", 
                 "{controller}/{action}/{id}", 
